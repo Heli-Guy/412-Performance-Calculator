@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>B412 Performance</title>
+<style>
+/*CSS*/
+  table.ca{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+  table.ca td{border-bottom:1px solid var(--line);padding:7px 6px;vertical-align:top}
+  table.ca td.l{font-weight:600;white-space:nowrap}
+  table.ca td.v{text-align:right;font-weight:700;font-size:16px;white-space:nowrap}
+  table.ca td.n{color:var(--mute);font-size:12px}
+  table.ca tr.ok td.v{color:var(--ok)} table.ca tr.bad td.v{color:var(--bad)} table.ca tr.tot td{background:#f3f5f7}
+  table.hv{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:15px}
+  table.hv th,table.hv td{border:1px solid var(--line);padding:7px 8px;text-align:center}
+  table.hv th{background:#f3f5f7;font-size:12px;color:var(--mute);font-weight:650}
+  table.hv td.rl{text-align:left;font-weight:650;font-size:13px;white-space:nowrap}
+  table.hv td.c{cursor:pointer}
+  table.hv td.c b{font-size:19px}
+  table.hv td.c .s{display:block;font-size:11px;color:var(--mute);margin-top:1px}
+  table.hv td.ok{background:#f2faf5}table.hv td.ok b{color:var(--ok)}
+  table.hv td.bad{background:#fdf2f4}table.hv td.bad b{color:var(--bad)}
+  table.hv td.na{color:#9aa5ae;font-size:12px}
+  table.hv td.sel{outline:3px solid #0a6ad1;outline-offset:-3px}
+  .cfgrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+  @media (max-width:600px){.cfgrow{grid-template-columns:1fr}}
+  .legend{font-size:12px;color:var(--mute);margin:6px 0 0;line-height:1.5}
+  .chart.selc{border:2px solid #0a6ad1}
+  .chart.nochart{background:#f6f7f8}
+  .legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:4px}
+</style>
+</head>
+<body>
+<header><h1>B412EPI <span>Performance</span></h1><div class="ver">v0.04 · test build · CCG</div></header>
+<main>
+
+<section class="card" id="cond">
+  <h2>Conditions <span id="condSum"></span></h2>
+  <div id="clampNote" role="status" aria-live="polite"></div>
+  <div class="grid6">
+    <label class="f">Elevation (ft)<input id="elev" type="number" inputmode="decimal" min="-2000" max="20000" value="1000"></label>
+    <label class="f">Altimeter (inHg)<input id="alt" type="number" inputmode="decimal" step="0.01" min="27" max="31.5" value="29.92"></label>
+    <label class="f">OAT (°C)<input id="oat" type="number" inputmode="decimal" min="-40" max="52" step="0.1" value="15"></label>
+    <label class="f">Gross weight (lb)<input id="gw" type="number" inputmode="decimal" min="6400" max="12200" value="11000"></label>
+    <label class="f">Rel. wind (°)<input id="rwind" type="number" inputmode="decimal" min="0" max="359" value="0"></label>
+    <label class="f">Wind (kt)<input id="wspd" type="number" inputmode="decimal" min="0" max="60" value="0"></label>
+  </div>
+  <div class="cfgrow">
+    <label class="f">Cabin configuration<select id="cfg"><option value="std">Standard (10+ pax seats)</option><option value="p9">9 or fewer pax seats (FMS-35.5)</option><option value="ext">External load — cargo hook</option></select></label>
+    <label class="f">Heater<select id="heat"><option value="off">OFF</option><option value="on">Standard heater ON</option><option value="win">Winterization heater ON</option></select></label>
+    <label class="f">Extended Hover Perf kit (FMS-80.5)<select id="ehp"><option value="yes">Installed — show EHP rows</option><option value="no">Hide EHP rows</option></select></label>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Atmosphere &amp; wind</h2>
+  <div class="res" id="atmo"></div>
+</section>
+
+<div class="tabs" id="tabs">
+  <button class="on" data-t="hover">Hover</button>
+  <button data-t="wat">WAT</button>
+  <button data-t="cata">CAT-A</button>
+  <button data-t="roc">Rate of climb</button>
+  <button class="todo" data-t="todo">Still to build</button>
+</div>
+
+<section class="card" id="t-hover">
+  <h2>Hover ceiling — maximum gross weight</h2>
+  <table class="hv" id="hovT"></table>
+  <div class="msgs" id="hovMsgs"></div>
+  <div id="wrapH" style="margin-top:4px"></div>
+  <p class="legend"><i style="background:#d0021b"></i>calculation path &nbsp; <i style="background:#0a6ad1"></i>your gross weight &nbsp; <i style="background:#e07b00"></i>Area A limit (OGE) · Tap a result to jump to its chart; tap a chart to enlarge.</p>
+</section>
+
+<section class="card" id="t-wat" style="display:none">
+  <h2>Weight-Altitude-Temperature — takeoff, landing &amp; IGE manoeuvres</h2>
+  <div class="res" id="watRes"></div>
+  <div class="msgs" id="watMsgs"></div>
+  <div class="pair" id="wrapW"></div>
+</section>
+
+<section class="card" id="t-cata" style="display:none">
+  <h2>Category A — BHT-412-FMS-62.5 (and FMS-74.5 Part D above 11,900 lb)</h2>
+  <div class="cfgrow">
+    <label class="f">Profile<select id="caProf"><option value="A">Part A — Side step (elevated heliport)</option><option value="B">Part B — Backup (surface / elevated)</option><option value="C">Part C — Runway</option><option value="D">Part D — Offset backup</option></select></label>
+    <label class="f caA">Takeoff surface height (ft)<input id="caSurf" type="number" inputmode="decimal" min="0" max="2000" value="105"></label>
+    <label class="f caA">Allowable drop down (ft, blank = 90+)<input id="caDrop" type="number" inputmode="decimal" min="0" max="200" placeholder="90 or more"></label>
+    <label class="f caA">Pad side at TDP/LDP<select id="caSide"><option value="R">Pad on right (RHS seat)</option><option value="L">Pad on left (LHS seat, 2 pilots)</option></select></label>
+  </div>
+  <div id="caRes" style="margin-top:12px"></div>
+  <div class="msgs" id="caMsgs"></div>
+  <div class="pair" id="caCharts"></div>
+  <p class="legend">OEI performance, 103% N<sub>R</sub> takeoff segments, heater off, all doors closed. Wind: ±90° of takeoff direction, crosswind ≤ 10 kt, headwind credit (50%) only within ±45°.</p>
+</section>
+
+<section class="card" id="t-roc" style="display:none">
+  <h2>Rate of climb — BHT-412-FM-5 Fig 4-7 / 4-8 / 4-9 (FMS-1.5, FMS-74.5)</h2>
+  <div class="cfgrow">
+    <label class="f">Doors<select id="rocDoors"><option value="closed">All doors closed — 70 KIAS</option><option value="open">Doors open or removed — 60 KIAS</option></select></label>
+  </div>
+  <div id="rocRes" style="margin-top:12px"></div>
+  <div class="msgs" id="rocMsgs"></div>
+  <div class="pair" id="rocCharts"></div>
+  <p class="legend">Engine RPM 100%, generator 200 A. Heater setting comes from Conditions. Rates are interpolated linearly between the gross-weight sheets.</p>
+</section>
+
+<section class="card" id="t-todo" style="display:none">
+  <h2>Still to build</h2>
+  <ul class="todo-list">
+    <li>CAT-A — FMS-90.x elevated helipad minimum surface area; single-engine rate of climb (information only)</li>
+    <li>Takeoff distance, single-engine landing distance</li>
+    <li>Power assurance check &amp; density altitude chart <span>(FM-5 Fig 4-1, 4-2 — scanned images, digitized separately)</span></li>
+    <li>Critical relative wind azimuths, Section 1 OAT / wind limits</li>
+  </ul>
+</section>
+
+<div class="foot">Test build for evaluation only — not approved for operational use. Always verify against the current BHT-412-FM-5 and applicable supplements (CCG 412EPI library).<br>Chart curves are read directly from the vector drawings in the Bell PDF manuals (no hand digitizing).</div>
+</main>
+<div class="zoom" id="zoom"><button class="x" id="zx">✕ Close</button><div id="zc"></div><div class="zh">Tap the chart or ✕ to return</div></div>
+
+<script>
+const CH=/*DATA*/;
+const IMG=Object.assign(/*IMGS*/,/*IMGSA*/,/*IMGSR*/);
+const RC=/*DATAR*/;
+const CA=/*DATAA*/;
+</script>
+<script>
+// ================= ENGINE =================
+(function(root){
+'use strict';
+const fin=Number.isFinite;
+// y on a polyline at x, extending the end segments linearly (used for PA lines)
+function yAtX(pts,x,extend){
+  for(let i=1;i<pts.length;i++){const p=pts[i-1],q=pts[i];
+    if(x>=Math.min(p[0],q[0])-1e-9&&x<=Math.max(p[0],q[0])+1e-9){ if(q[0]===p[0])return Math.min(p[1],q[1]); return p[1]+(x-p[0])*(q[1]-p[1])/(q[0]-p[0]);}}
+  if(!extend)return NaN;
+  const s=pts.slice().sort((a,b)=>a[0]-b[0]); const lo=x<s[0][0];
+  let a=lo?s[0]:s[s.length-1],k=lo?1:s.length-2; while(k>0&&k<s.length-1&&Math.abs(s[k][0]-a[0])<6)k+=lo?1:-1;
+  const b=s[k]; if(b[0]===a[0])return NaN; return a[1]+(x-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+}
+// x on a polyline at y (first crossing from the top); below its last point: the last x (lines finish vertically)
+function xAtY(pts,y){
+  for(let i=1;i<pts.length;i++){const p=pts[i-1],q=pts[i];
+    if(y>=Math.min(p[1],q[1])-1e-9&&y<=Math.max(p[1],q[1])+1e-9){ if(q[1]===p[1])return Math.max(p[0],q[0]); return p[0]+(y-p[1])*(q[0]-p[0])/(q[1]-p[1]);}}
+  const last=pts.reduce((m,p)=>p[1]>m[1]?p:m,pts[0]), first=pts.reduce((m,p)=>p[1]<m[1]?p:m,pts[0]);
+  if(y>last[1])return last[0];
+  if(y<first[1]&&y>first[1]-2.5)return first[0];   // line starts a hair below the chart top
+  return NaN;
+}
+// interpolate across a family; extrapolate=true allows beyond the end members, otherwise clamp
+function fam(target,vs,vals,extrapolate){
+  const p=vs.map((v,i)=>[v,vals[i]]).filter(q=>fin(q[1])).sort((a,b)=>a[0]-b[0]);
+  if(!p.length)return NaN; if(p.length===1)return p[0][1];
+  let i=0; while(i<p.length-2&&target>p[i+1][0])i++;
+  const a=p[i],b=p[i+1];
+  if(!extrapolate){ if(target<=p[0][0])return p[0][1]; if(target>=p[p.length-1][0])return p[p.length-1][1]; }
+  return a[1]+(target-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+}
+// A family line that starts part-way down the chart branches off another line: above its start it follows that parent line.
+function distSeg(p,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],L=dx*dx+dy*dy;const t=L?Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/L)):0;return Math.hypot(a[0]+t*dx-p[0],a[1]+t*dy-p[1]);}
+function onLine(p,pts){for(let i=1;i<pts.length;i++)if(distSeg(p,pts[i-1],pts[i])<1.2)return true;return false;}
+function linkParents(C){ if(C._linked)return; C._linked=true;
+  const others=C.oat.map(f=>f.pts).concat([C.tol,C.maxgw].filter(Boolean));
+  for(const f of C.oat){ const top=f.pts.reduce((m,p)=>p[1]<m[1]?p:m,f.pts[0]);
+    if(top[1]>C.yTop+1.5){ const par=others.find(o=>o!==f.pts&&onLine(top,o)&&o.some(p=>p[1]<top[1]-1)); if(par)f.parent=par; f.top=top[1]; } } }
+function xUp(f,y){ const x=xAtY(f.pts,y); if(Number.isFinite(x))return x; if(f.parent&&y<f.top)return xAtY(f.parent,y); return NaN; }
+function pip(poly,x,y){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];
+  if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;}
+const gwOf=(C,x)=>C.xGw[0]*x+C.xGw[1], xOfGw=(C,g)=>(g-C.xGw[1])/C.xGw[0];
+const xOfOat=(C,t)=>(t-C.xOat[1])/C.xOat[0];
+
+// Bell hover-ceiling / WAT chart: PA lines (left) -> reference line(s) (right) -> gross weight
+function chartGW(C,pa,oat){
+  const r={C,status:'ok'};
+  if(C.oatRange&&(oat<C.oatRange[0]-0.01||oat>C.oatRange[1]+0.01)){r.status='oatrange';return r;}
+  r.x0=xOfOat(C,oat);
+  if(r.x0<C.xL-0.5){r.status='oatrange';return r;}
+  r.y=fam(pa,C.pa.map(f=>f.v),C.pa.map(f=>yAtX(f.pts,r.x0,true)),true);
+  if(!fin(r.y)){r.status='out';return r;}
+  if(C.paMax){const xm=xAtY(C.paMax,Math.max(C.yTop,Math.min(C.yBot,r.y))); if(fin(xm)&&r.x0>xm+0.8){r.status='oatmax';}}
+  if(r.y<C.yTop-0.4&&r.status==='ok'){r.status='hd';}
+  if(C.hdY)r.hd=C.hdY[0]*r.y+C.hdY[1];
+  if(r.status!=='ok')return r;
+  r.below=r.y>C.yBot; const y=Math.max(C.yTop,Math.min(r.y,C.yBot)); r.yc=y;
+  linkParents(C);
+  const caps=[C.tol,C.maxgw].filter(Boolean).map(p=>xAtY(p,y)).filter(fin);
+  let x=Infinity;
+  if(C.oat.length){
+    let vs=C.oat.map(f=>f.v), xs=C.oat.map(f=>xUp(f,y));
+    if(C.oatMax&&C.paMax){ // right-hand MAX OAT line acts as the family member for the max OAT at this altitude
+      const xm=xAtY(C.oatMax,y), tm=xAtY(C.paMax,y)*C.xOat[0]+C.xOat[1];
+      if(fin(xm)&&fin(tm)){ const keep=vs.map((v,i)=>v<tm-0.05); vs=vs.filter((v,i)=>keep[i]).concat([tm]); xs=xs.filter((v,i)=>keep[i]).concat([xm]); r.tMax=tm; }
+    }
+    const ok=vs.filter((v,i)=>fin(xs[i]));
+    if(ok.length){ const hi=Math.max(...ok);
+      x=(oat>hi+0.01&&caps.length&&!fin(r.tMax))?Infinity:fam(fin(r.tMax)?Math.min(oat,r.tMax):oat,vs,xs,false); }
+  }
+  for(const c of caps)x=Math.min(x,c);
+  if(!fin(x))x=C.xR;
+  r.x=Math.min(x,C.xR); r.gw=gwOf(C,r.x); r.atEdge=r.x>=C.xR-0.3;
+  if(C.areaB&&C.areaB.length){
+    let xa=r.x; for(let t=C.xSplit+0.2;t<=r.x;t+=0.2){ if(C.areaB.some(p=>pip(p,t,y))){xa=t-0.2;break;} }
+    r.xA=xa; r.gwA=gwOf(C,xa);
+  }
+  return r;
+}
+function pressureAltitude(elev,inHg){return elev+(29.92-inHg)*1000;}
+function densityAltitude(pa,oat){const T0=288.15,L=0.0019812,g=5.25588;const p=Math.pow(1-L*pa/T0,g);const sig=p*T0/(oat+273.15);return T0/L*(1-Math.pow(sig,1/(g-1)));}
+root.B412={chartGW,pressureAltitude,densityAltitude,xAtY,yAtX,gwOf,xOfGw,xOfOat};
+})(window);
+</script>
+<script>
+/*CATAENGINE*/
+</script>
+<script>
+// ================= UI =================
+const $=id=>document.getElementById(id), B=window.B412, fin=Number.isFinite;
+const SRC_MAX={100:11900,103:12200};
+const f0=v=>fin(v)?Math.round(v).toLocaleString('en-US'):'—';
+const floor10=v=>Math.floor((v+3)/10)*10;
+
+function hovKey(nr,cfg,ge,pw,heat,oat){
+  const notes=[]; let base, sub=null;
+  const ext=cfg==='ext'&&ge==='ige'&&pw!=='ehp';
+  if(nr===103){ base=ext?'gw_ext_103':'gw_std_103'; if(cfg==='p9')notes.push('No 9-seat charts at 103% — FMS-74.5 standard charts used.'); }
+  else base=cfg==='p9'?'p9_100':(ext?'ext_100':'fm_std_100');
+  if(cfg==='ext'&&ge==='oge')notes.push('No external-load OGE chart — basic OGE chart used.');
+  let h=heat;
+  if(base==='gw_ext_103'&&heat==='win'){h='on';sub=pw==='top'?[8000,450]:[9000,500];}
+  let k=`${base}_${ge}_${pw}_${h}`;
+  const band=k+'_'+(oat>=0?'pos':'neg'), alt=k+'_'+(oat>=0?'neg':'pos');
+  if(CH[band])k=band; else if(!CH[k]&&CH[alt]&&oat===0)k=alt;
+  return CH[k]?{k,notes,sub}:null;
+}
+const ROWS=[['ige','top','IGE · Takeoff power'],['ige','mcp','IGE · Max continuous'],['oge','top','OGE · Takeoff power'],['oge','mcp','OGE · Max continuous'],['ige','ehp','IGE · MCP (EHP kit)'],['oge','ehp','OGE · MCP (EHP kit)']];
+const STAT={oatrange:'OAT outside chart',oatmax:'Above max OAT',hd:'Above Hd limit',out:'Off chart'};
+let SEL=null, MIDN=0;
+
+function svgChart(C,key,paths,marks){
+  const MID=++MIDN, [x,y,w,h]=C.im;
+  let s=`<svg viewBox="${x} ${y} ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><defs><marker id="ah${MID}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#d0021b"/></marker></defs><image href="${IMG[key]}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none"/>`;
+  for(const p of paths){ if(p.pts.some(q=>!fin(q[0])||!fin(q[1])))continue;
+    s+=`<polyline ${p.arrow?`marker-end="url(#ah${MID})"`:''} points="${p.pts.map(q=>q[0].toFixed(2)+','+q[1].toFixed(2)).join(' ')}" fill="none" stroke="${p.c||'#d0021b'}" stroke-width="${p.w||1.6}" ${p.dash?`stroke-dasharray="${p.dash}"`:''} stroke-linejoin="round" stroke-linecap="round" opacity=".95"/>`; }
+  for(const m of marks||[]){ if(!fin(m[0])||!fin(m[1]))continue;
+    s+=`<circle cx="${m[0]}" cy="${m[1]}" r="2.6" fill="${m[3]||'#d0021b'}" stroke="#fff" stroke-width=".8"/>`;
+    if(m[2])s+=`<text x="${m[0]+(m[4]?-4:4)}" y="${m[1]+(m[4]?11:-4)}" ${m[4]?'text-anchor="end"':''} font-size="8" font-weight="700" fill="${m[3]||'#d0021b'}" stroke="#fff" stroke-width="2.2" paint-order="stroke" font-family="Helvetica,Arial">${m[2]}</text>`; }
+  return s+'</svg>';
+}
+function chartPaths(r,gw){
+  const C=r.C, P=[], M=[];
+  if(!fin(r.y))return {P,M};
+  const yb=C.yBot, y=r.yc??Math.max(C.yTop,Math.min(C.yBot,r.y));
+  P.push({pts:[[r.x0,yb],[r.x0,y]],arrow:true});
+  if(r.status==='ok'){
+    P.push({pts:[[r.x0,y],[r.x,y]],arrow:true}); P.push({pts:[[r.x,y],[r.x,yb]],arrow:true});
+    M.push([r.x,y,floor10(r.gw).toLocaleString('en-US')+' lb']);
+    if(fin(r.xA)&&r.xA<r.x-0.3)M.push([r.xA,y,'Area A '+floor10(r.gwA).toLocaleString('en-US'),'#e07b00',1]);
+  } else M.push([r.x0,y,STAT[r.status]||r.status]);
+  const xg=B.xOfGw(C,gw); if(xg>C.xSplit&&xg<=C.xR+0.5)P.push({pts:[[xg,C.yTop],[xg,yb]],c:'#0a6ad1',w:1.2,dash:'4 3'});
+  return {P,M};
+}
+function cap(C){return `${C.src} Fig ${C.fig}${C.hdr&&C.hdr.length?' · '+C.hdr.filter(t=>!/^OAT/.test(t)).join(' · '):''}`;}
+
+function val(id){const e=$(id);let v=parseFloat(e.value);
+  if(id==='rwind'&&fin(v))return((v%360)+360)%360;
+  if(fin(v)){const lo=parseFloat(e.min),hi=parseFloat(e.max);if(fin(lo)&&v<lo)v=lo;if(fin(hi)&&v>hi)v=hi;}return v;}
+function clampField(e){const v=parseFloat(e.value);if(!fin(v))return;const lo=parseFloat(e.min),hi=parseFloat(e.max);
+  let w=v; if(e.id==='rwind')w=((Math.round(v)%360)+360)%360; else{if(fin(lo)&&w<lo)w=lo;if(fin(hi)&&w>hi)w=hi;}
+  if(w!==v){e.value=w;e.classList.add('clamped');setTimeout(()=>e.classList.remove('clamped'),1200);
+    const name=(e.closest('label')?.firstChild?.textContent||e.id).trim();
+    const n=$('clampNote');n.textContent=`${name}: ${v} changed to ${w} (${w<v?'maximum':'minimum'} allowed).`;n.classList.add('on');
+    clearTimeout(clampField.t);clampField.t=setTimeout(()=>n.classList.remove('on'),6000);calc();}}
+
+function calc(){
+  const elev=val('elev'),alt=val('alt'),oat=val('oat'),gw=val('gw'),rw=val('rwind'),ws=val('wspd');
+  const cfg=$('cfg').value,heat=$('heat').value,ehp=$('ehp').value==='yes';
+  const pa=B.pressureAltitude(elev,alt), da=B.densityAltitude(pa,oat), isa=15-1.98*pa/1000;
+  const hw=ws*Math.cos(rw*Math.PI/180), xw=ws*Math.sin(rw*Math.PI/180);
+  $('condSum').textContent=`PA ${f0(pa)} ft · DA ${f0(da)} ft · ${oat} °C · ${f0(gw)} lb`;
+  $('atmo').innerHTML=`<div class="r"><div class="k">Pressure altitude</div><div class="v">${f0(pa)}</div><div class="s">ft</div></div>
+   <div class="r"><div class="k">Density altitude</div><div class="v">${f0(da)}</div><div class="s">ft · ISA ${oat-isa>=0?'+':''}${(oat-isa).toFixed(1)} °C</div></div>
+   <div class="r"><div class="k">Headwind</div><div class="v">${hw>=0?'':'−'}${Math.abs(hw).toFixed(0)}</div><div class="s">kt ${hw<0?'(tailwind)':''}</div></div>
+   <div class="r"><div class="k">Crosswind</div><div class="v">${Math.abs(xw).toFixed(0)}</div><div class="s">kt ${xw>0.5?'from right':xw<-0.5?'from left':''}</div></div>`;
+
+  // ---------- HOVER ----------
+  const res={}, msgs=new Set();
+  let html='<tr><th></th><th>100% N<sub>R</sub> · FM-5<br><span style="font-weight:400">max 11,900 lb</span></th><th>103% N<sub>R</sub> · FMS-74.5<br><span style="font-weight:400">max 12,200 lb</span></th></tr>';
+  for(const [ge,pw,lab] of ROWS){
+    if(pw==='ehp'&&!ehp)continue;
+    html+=`<tr><td class="rl">${lab}</td>`;
+    for(const nr of [100,103]){
+      const id=`${ge}_${pw}_${nr}`, sel=hovKey(nr,cfg,ge,pw,heat,oat);
+      if(!sel){html+=`<td class="na">no chart for this<br>configuration</td>`;continue;}
+      const C=CH[sel.k], r=B.chartGW(C,pa,oat); r.key=sel.k; r.nr=nr; res[id]=r; sel.notes.forEach(n=>msgs.add(n));
+      if(r.status!=='ok'){html+=`<td class="c bad${SEL===id?' sel':''}" data-id="${id}"><b style="font-size:14px">${STAT[r.status]}</b></td>`;continue;}
+      let g=r.gw, gA=r.gwA;
+      if(sel.sub&&r.hd>sel.sub[0]){g-=sel.sub[1];if(fin(gA))gA-=sel.sub[1];msgs.add(`Winterization heater: ${sel.sub[1]} lb subtracted above ${f0(sel.sub[0])} ft Hd (FMS-74.5 Part C note).`);}
+      const mx=SRC_MAX[nr]; const capd=g>=mx||r.atEdge; g=Math.min(floor10(g),mx); if(fin(gA))gA=Math.min(floor10(gA),mx);
+      r.out=g; r.outA=gA;
+      const okk=gw<=g; let sub='';
+      if(fin(gA)&&gA<g)sub=`<span class="s">Area A ${f0(gA)}</span>`; else if(ge==='oge'&&fin(gA))sub='<span class="s">Area A</span>';
+      if(capd)sub+=`<span class="s">max GW</span>`;
+      html+=`<td class="c ${okk?'ok':'bad'}${SEL===id?' sel':''}" data-id="${id}"><b>${f0(g)}</b>${sub}</td>`;
+    }
+    html+='</tr>';
+  }
+  $('hovT').innerHTML=html;
+  if(gw>11900)msgs.add('Gross weight above 11,900 lb: FMS-74.5 (103% N<sub>R</sub>) applies.');
+  if(cfg!=='std')msgs.add(cfg==='p9'?'FMS-35.5 charts: valid for zero wind or wind outside the critical relative wind azimuths.':'FMS-9.5 / FMS-74.5 Part C external-load charts: valid for zero wind or wind outside the critical relative wind azimuths.');
+  msgs.add('OGE: Area A = control margins demonstrated in winds from any direction (FM-5 Fig 1-3 limits). Weights above Area A (Area B, shaded) need calm wind or wind outside the critical azimuths.');
+  $('hovMsgs').innerHTML=[...msgs].map(m=>`<div class="msg">${m}</div>`).join('');
+  // all charts behind the table: one row per hover case, 100% and 103% side by side
+  let ch='';
+  for(const [ge,pw,lab] of ROWS){
+    if(pw==='ehp'&&!ehp)continue;
+    ch+=`<h3 class="sub">${lab}</h3><div class="pair">`;
+    for(const nr of [100,103]){
+      const id=`${ge}_${pw}_${nr}`, r=res[id];
+      if(!r){ch+=`<div class="chart nochart"><div class="cap"><span>${nr}% N<sub>R</sub> — no chart for this configuration</span></div></div>`;continue;}
+      const {P,M}=chartPaths(r,gw);
+      ch+=`<div class="chart${SEL===id?' selc':''}" id="ch_${id}">${svgChart(r.C,r.key,P,M)}<div class="cap"><span><b>${nr}% N<sub>R</sub></b> · ${cap(r.C)}</span><span>p.${r.C.page}</span></div></div>`;
+    }
+    ch+='</div>';
+  }
+  $('wrapH').innerHTML=ch;
+  if(calc.jump){const el=$('ch_'+calc.jump);calc.jump=null;if(el)el.scrollIntoView({behavior:'smooth',block:'center'});}
+
+  // ---------- WAT ----------
+  const W=[[100,cfg==='p9'?'wat_p9':'wat_fm'],[103,'wat_gw']];
+  let wh='', wc='', wm=[];
+  for(const [nr,k] of W){ const C=CH[k], r=B.chartGW(C,pa,oat);
+    let g=NaN; if(r.status==='ok'){g=Math.min(floor10(r.gw),SRC_MAX[nr]);}
+    wh+=`<div class="r ${r.status!=='ok'?'bad':(gw<=g?'ok':'bad')}"><div class="k">WAT · ${nr}% N<sub>R</sub> · ${C.src} Fig ${C.fig}</div><div class="v">${r.status==='ok'?f0(g):STAT[r.status]}</div><div class="s">${r.status==='ok'?'lb max takeoff / landing / IGE':''}</div></div>`;
+    const {P,M}=chartPaths(r,gw); wc+=`<div class="chart">${svgChart(C,k,P,M)}<div class="cap"><span>${C.src} Fig ${C.fig}</span><span>p.${C.page}</span></div></div>`;
+  }
+  $('watRes').innerHTML=wh; $('wrapW').innerHTML=wc;
+  $('watMsgs').innerHTML='<div class="msg">Allowable weights from the WAT chart may exceed hover capability — check the hover ceiling.</div>';
+  try{ calcROC({pa,oat,gw,heat}); }catch(e){ $('rocRes').innerHTML='<div class="msg">ROC error: '+e.message+'</div>'; console.error(e); }
+  try{ calcCatA({pa,oat,gw,rw,ws,da}); }catch(e){ $('caRes').innerHTML='<div class="msg">CAT-A error: '+e.message+'</div>'; console.error(e); }
+  bindZoom();
+}
+/*CATAUI*/
+/*ROCUI*/
+$('hovT').addEventListener('pointerdown',e=>{const td=e.target.closest('td.c');if(td){SEL=td.dataset.id;calc.jump=SEL;setTimeout(calc,0);}});
+function bindZoom(){document.querySelectorAll('.chart').forEach(c=>c.onclick=()=>{$('zc').innerHTML=c.querySelector('svg').outerHTML.replace(/ah(\d+)/g,'zah$1');$('zoom').classList.add('on');});}
+function zClose(){$('zoom').classList.remove('on');}
+$('zoom').addEventListener('click',zClose);document.addEventListener('keydown',e=>{if(e.key==='Escape')zClose()});
+document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  ['hover','wat','cata','roc','todo'].forEach(t=>$('t-'+t).style.display=t===b.dataset.t?'':'none');}));
+document.querySelectorAll('input,select').forEach(e=>{e.addEventListener('input',calc);e.addEventListener('change',()=>{if(e.tagName==='INPUT')clampField(e);calc();});});
+const hh=()=>document.documentElement.style.setProperty('--hh',document.querySelector('header').offsetHeight+'px');hh();addEventListener('resize',hh);
+calc();
+</script>
+</body>
+</html>

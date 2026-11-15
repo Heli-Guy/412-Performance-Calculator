@@ -1,0 +1,25 @@
+FM='3464f03d-412EPIFM05S04.pdf'; P9='67962796-412EPIFMS3505.pdf'; HK='bd6642ab-412EPIFMS0905.pdf'; GW='252bae3c-412FMS7405.pdf'; EHP='703cd4c8-412FMS8005.pdf'
+# key: src_cfg_rpm_ige/oge_power_heater_oatband
+L=[]
+def add(f,p,key): L.append((f,p,key))
+for p,k in [(11,'top_off'),(12,'top_on'),(13,'mcp_off'),(14,'mcp_on')]: add(FM,p,f'fm_std_100_ige_{k}')
+for p,k in [(15,'top_off_pos'),(16,'top_off_neg'),(17,'top_on_pos'),(18,'top_on_neg'),(19,'mcp_off_pos'),(20,'mcp_off_neg'),(21,'mcp_on_pos'),(22,'mcp_on_neg')]: add(FM,p,f'fm_std_100_oge_{k}')
+for p,k in [(15,'top_off'),(16,'top_on'),(17,'mcp_off'),(18,'mcp_on')]: add(P9,p,f'p9_100_ige_{k}')
+for p,k in [(19,'top_off'),(20,'top_on'),(21,'mcp_off'),(22,'mcp_on')]: add(P9,p,f'p9_100_oge_{k}')
+for p,k in [(19,'top_off'),(20,'top_on'),(21,'mcp_off'),(22,'mcp_on')]: add(HK,p,f'ext_100_ige_{k}')
+for p,k in [(21,'top_off'),(22,'top_on'),(23,'mcp_off'),(24,'mcp_on')]: add(GW,p,f'gw_std_103_ige_{k}')
+for p,k in [(25,'top_off_pos'),(26,'top_off_neg'),(27,'top_on_pos'),(28,'top_on_neg'),(29,'mcp_off_pos'),(30,'mcp_off_neg'),(31,'mcp_on_pos'),(32,'mcp_on_neg')]: add(GW,p,f'gw_std_103_oge_{k}')
+for p,k in [(42,'top_win'),(43,'mcp_win')]: add(GW,p,f'gw_std_103_ige_{k}')
+for p,k in [(44,'top_win_pos'),(45,'top_win_neg'),(46,'mcp_win_pos'),(47,'mcp_win_neg')]: add(GW,p,f'gw_std_103_oge_{k}')
+for p,k in [(55,'top_off'),(56,'top_on'),(57,'mcp_off'),(58,'mcp_on')]: add(GW,p,f'gw_ext_103_ige_{k}')
+for p,k in [(74,'ehp_off'),(75,'ehp_on'),(76,'ehp_win')]: add(GW,p,f'gw_std_103_ige_{k}')
+for p,k in [(77,'ehp_off_pos'),(78,'ehp_off_neg'),(79,'ehp_on_pos'),(80,'ehp_on_neg'),(81,'ehp_win_pos'),(82,'ehp_win_neg')]: add(GW,p,f'gw_std_103_oge_{k}')
+for p,k in [(15,'ehp_off'),(16,'ehp_on'),(17,'ehp_win')]: add(EHP,p,f'fm_std_100_ige_{k}')
+for p,k in [(18,'ehp_off_pos'),(19,'ehp_off_neg'),(20,'ehp_on_pos'),(21,'ehp_on_neg'),(22,'ehp_win_pos'),(23,'ehp_win_neg')]: add(EHP,p,f'fm_std_100_oge_{k}')
+for p,k in [(29,'ehp_off'),(30,'ehp_on'),(31,'ehp_win')]: add(EHP,p,f'p9_100_ige_{k}')
+for p,k in [(32,'ehp_off'),(33,'ehp_on'),(34,'ehp_win_pos'),(35,'ehp_win_neg')]: add(EHP,p,f'p9_100_oge_{k}')
+WH='453da255-412FMS0105.pdf'
+for p,k in [(13,'top_win'),(14,'mcp_win')]: add(WH,p,f'fm_std_100_ige_{k}')
+for p,k in [(15,'top_win_pos'),(16,'top_win_neg'),(17,'mcp_win_pos'),(18,'mcp_win_neg')]: add(WH,p,f'fm_std_100_oge_{k}')
+for p,k in [(35,'top_win'),(36,'mcp_win')]: add(WH,p,f'p9_100_ige_{k}')
+for p,k in [(37,'top_win'),(38,'mcp_win_pos'),(39,'mcp_win_neg')]: add(WH,p,f'p9_100_oge_{k}')
