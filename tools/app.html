@@ -71,7 +71,6 @@
   <button data-t="cata">CAT-A</button>
   <button data-t="roc">Rate of climb</button>
   <button data-t="pwr">Power check</button>
-  <button data-t="da">Density altitude</button>
   <button class="todo" data-t="todo">Still to build</button>
 </div>
 
@@ -126,13 +125,10 @@
   <div class="msgs" id="pwrMsgs"></div>
   <div id="pwrCharts" style="display:grid;gap:12px;max-width:760px"></div>
   <p class="legend">Test engine at FLY, other engine IDLE or OFF, N<sub>P</sub> 100%, bleed-air heater and generator OFF on the test engine. Stabilize 1 minute; do not exceed 825 °C MGT, 102.0% N<sub>G</sub> or 66.2% torque. Chart lines digitized from the scanned FM figure (≈ ±2 °C / ±0.2% reading accuracy) — the DU3 automated check remains the primary method.</p>
-</section>
-
-<section class="card" id="t-da" style="display:none">
-  <h2>Density altitude — BHT-412-FM-5 Fig 4-2</h2>
+  <h2 style="margin-top:22px">Density altitude — BHT-412-FM-5 Fig 4-2</h2>
   <div class="cfgrow"><label class="f">Calibrated airspeed (KCAS)<input id="kcas" type="number" inputmode="decimal" min="0" max="200" value="100"></label></div>
   <div class="res" id="daRes" style="margin-top:12px"></div>
-  <div id="daChart" style="margin-top:8px;max-width:620px"></div>
+  <div id="daChart" style="margin-top:8px;max-width:760px"></div>
   <p class="legend">PA and OAT come from Conditions. Values are computed from the ISA standard atmosphere; the Bell chart matches it within ~10 ft (Bell example: −15 °C, 7,000 ft → 5,000 ft, 1/√σ 1.078).</p>
 </section>
 
@@ -382,7 +378,7 @@ function zClose(){$('zoom').classList.remove('on');}
 $('zoom').addEventListener('click',zClose);document.addEventListener('keydown',e=>{if(e.key==='Escape')zClose()});
 document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  ['hover','wat','cata','roc','pwr','da','todo'].forEach(t=>$('t-'+t).style.display=t===b.dataset.t?'':'none');}));
+  ['hover','wat','cata','roc','pwr','todo'].forEach(t=>$('t-'+t).style.display=t===b.dataset.t?'':'none');}));
 document.querySelectorAll('input,select').forEach(e=>{e.addEventListener('input',calc);e.addEventListener('change',()=>{if(e.tagName==='INPUT')clampField(e);calc();});});
 const hh=()=>document.documentElement.style.setProperty('--hh',document.querySelector('header').offsetHeight+'px');hh();addEventListener('resize',hh);
 calc();
