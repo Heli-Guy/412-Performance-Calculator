@@ -15,6 +15,8 @@
   table.ca td.l{font-weight:600;white-space:nowrap}
   table.ca td.v{text-align:right;font-weight:700;font-size:16px;white-space:nowrap}
   table.ca td.n{color:var(--mute);font-size:12px}
+  table.ca.pw th{font-size:11px;color:var(--mute);text-align:right;font-weight:600;padding:4px 6px} table.ca.pw td.n{text-align:right;font-size:14px;color:inherit} table.ca.pw td.v{font-size:15px} table.ca td.v.neg{color:var(--bad)} i.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px} table.ca .s{display:block;font-weight:400;font-size:11px;color:var(--mute)}
+  .eng{display:grid;grid-template-columns:auto repeat(3,1fr);gap:8px 10px;align-items:end;margin-bottom:12px} .eng b{font-size:13px;padding-bottom:9px} .eng .k{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.5px}
   table.ca tr.ok td.v{color:var(--ok)} table.ca tr.bad td.v{color:var(--bad)} table.ca tr.tot td{background:#f3f5f7}
   table.hv{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:15px}
   table.hv th,table.hv td{border:1px solid var(--line);padding:7px 8px;text-align:center}
@@ -37,7 +39,7 @@
 </head>
 <body>
 <div id="splash" role="img" aria-label="Bell 412 CCG"><img src="/*SPLASH*/" alt=""></div>
-<header><h1>B412EPI <span>Performance</span></h1><div class="ver">v0.05 · test build · CCG</div></header>
+<header><h1>B412EPI <span>Performance</span></h1><div class="ver">v0.06 · test build · CCG</div></header>
 <main>
 
 <section class="card" id="cond">
@@ -68,6 +70,8 @@
   <button data-t="wat">WAT</button>
   <button data-t="cata">CAT-A</button>
   <button data-t="roc">Rate of climb</button>
+  <button data-t="pwr">Power check</button>
+  <button data-t="da">Density altitude</button>
   <button class="todo" data-t="todo">Still to build</button>
 </div>
 
@@ -111,12 +115,32 @@
   <p class="legend">Engine RPM 100%, generator 200 A. Heater setting comes from Conditions. Rates are interpolated linearly between the gross-weight sheets.</p>
 </section>
 
+<section class="card" id="t-pwr" style="display:none">
+  <h2>Power assurance check — BHT-412-FM-5 Fig 4-1 (ground / hover)</h2>
+  <div class="eng">
+    <span></span><span class="k">Torque Q (%)</span><span class="k">MGT (°C)</span><span class="k">N<sub>G</sub> (%)</span>
+    <b>Engine 1</b><input id="pq1" type="number" inputmode="decimal" step="0.1" min="40" max="75" value="60"><input id="pm1" type="number" inputmode="decimal" min="300" max="900" placeholder="actual"><input id="pn1" type="number" inputmode="decimal" step="0.1" min="70" max="105" placeholder="actual">
+    <b>Engine 2</b><input id="pq2" type="number" inputmode="decimal" step="0.1" min="40" max="75" value="60"><input id="pm2" type="number" inputmode="decimal" min="300" max="900" placeholder="actual"><input id="pn2" type="number" inputmode="decimal" step="0.1" min="70" max="105" placeholder="actual">
+  </div>
+  <div id="pwrRes"></div>
+  <div class="msgs" id="pwrMsgs"></div>
+  <div class="pair" id="pwrCharts"></div>
+  <p class="legend">Test engine at FLY, other engine IDLE or OFF, N<sub>P</sub> 100%, bleed-air heater and generator OFF on the test engine. Stabilize 1 minute; do not exceed 825 °C MGT, 102.0% N<sub>G</sub> or 66.2% torque. Chart lines digitized from the scanned FM figure (≈ ±2 °C / ±0.2% reading accuracy) — the DU3 automated check remains the primary method.</p>
+</section>
+
+<section class="card" id="t-da" style="display:none">
+  <h2>Density altitude — BHT-412-FM-5 Fig 4-2</h2>
+  <div class="cfgrow"><label class="f">Calibrated airspeed (KCAS)<input id="kcas" type="number" inputmode="decimal" min="0" max="200" value="100"></label></div>
+  <div class="res" id="daRes" style="margin-top:12px"></div>
+  <div id="daChart" style="margin-top:8px;max-width:620px"></div>
+  <p class="legend">PA and OAT come from Conditions. Values are computed from the ISA standard atmosphere; the Bell chart matches it within ~10 ft (Bell example: −15 °C, 7,000 ft → 5,000 ft, 1/√σ 1.078).</p>
+</section>
+
 <section class="card" id="t-todo" style="display:none">
   <h2>Still to build</h2>
   <ul class="todo-list">
     <li>CAT-A — FMS-90.x elevated helipad minimum surface area; single-engine rate of climb (information only)</li>
     <li>Takeoff distance, single-engine landing distance</li>
-    <li>Power assurance check &amp; density altitude chart <span>(FM-5 Fig 4-1, 4-2 — scanned images, digitized separately)</span></li>
     <li>Critical relative wind azimuths, Section 1 OAT / wind limits</li>
   </ul>
 </section>
@@ -130,6 +154,8 @@ const CH=/*DATA*/;
 const IMG=Object.assign(/*IMGS*/,/*IMGSA*/,/*IMGSR*/);
 const RC=/*DATAR*/;
 const CA=/*DATAA*/;
+const PW=/*DATAP*/;
+Object.assign(IMG,/*IMGSP*/);
 </script>
 <script>
 // ================= ENGINE =================
@@ -343,18 +369,20 @@ function calc(){
   $('watRes').innerHTML=wh; $('wrapW').innerHTML=wc;
   $('watMsgs').innerHTML='<div class="msg">Allowable weights from the WAT chart may exceed hover capability — check the hover ceiling.</div>';
   try{ calcROC({pa,oat,gw,heat}); }catch(e){ $('rocRes').innerHTML='<div class="msg">ROC error: '+e.message+'</div>'; console.error(e); }
+  try{ calcPWR({pa,oat,da}); }catch(e){ $('pwrRes').innerHTML='<div class="msg">Power check error: '+e.message+'</div>'; console.error(e); }
   try{ calcCatA({pa,oat,gw,rw,ws,da}); }catch(e){ $('caRes').innerHTML='<div class="msg">CAT-A error: '+e.message+'</div>'; console.error(e); }
   bindZoom();
 }
 /*CATAUI*/
 /*ROCUI*/
+/*PWRUI*/
 $('hovT').addEventListener('pointerdown',e=>{const td=e.target.closest('td.c');if(td){SEL=td.dataset.id;calc.jump=SEL;setTimeout(calc,0);}});
 function bindZoom(){document.querySelectorAll('.chart').forEach(c=>c.onclick=()=>{$('zc').innerHTML=c.querySelector('svg').outerHTML.replace(/ah(\d+)/g,'zah$1');$('zoom').classList.add('on');});}
 function zClose(){$('zoom').classList.remove('on');}
 $('zoom').addEventListener('click',zClose);document.addEventListener('keydown',e=>{if(e.key==='Escape')zClose()});
 document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  ['hover','wat','cata','roc','todo'].forEach(t=>$('t-'+t).style.display=t===b.dataset.t?'':'none');}));
+  ['hover','wat','cata','roc','pwr','da','todo'].forEach(t=>$('t-'+t).style.display=t===b.dataset.t?'':'none');}));
 document.querySelectorAll('input,select').forEach(e=>{e.addEventListener('input',calc);e.addEventListener('change',()=>{if(e.tagName==='INPUT')clampField(e);calc();});});
 const hh=()=>document.documentElement.style.setProperty('--hh',document.querySelector('header').offsetHeight+'px');hh();addEventListener('resize',hh);
 calc();

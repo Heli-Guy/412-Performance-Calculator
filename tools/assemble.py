@@ -4,6 +4,7 @@ t=(s.replace('/*SPLASH*/',open(W+'splash.b64').read()).replace('/*CSS*/',open(W+
    .replace('/*IMGS*/',open(W+'imgs412.json').read()).replace('/*IMGSA*/',open(W+'catA_img.json').read())
    .replace('/*DATAA*/',open(W+'catA.json').read()).replace('/*CATAENGINE*/',open(W+'catA_engine.js').read())
    .replace('/*CATAUI*/',open(W+'catA_ui.js').read()).replace('/*ROCUI*/',open(W+'roc_ui.js').read())
-   .replace('/*IMGSR*/',open(W+'roc_img.json').read()).replace('/*DATAR*/',open(W+'roc.json').read()))
+   .replace('/*IMGSR*/',open(W+'roc_img.json').read()).replace('/*DATAR*/',open(W+'roc.json').read())
+   .replace('/*DATAP*/',open(W+'pwr.json').read()).replace('/*IMGSP*/',open(W+'pwr_img.json').read()).replace('/*PWRUI*/',open(W+'pwr_ui.js').read()))
 open(W+'index.html','w').write(t)
 import os; print(os.path.getsize(W+'index.html')//1024,'KB')

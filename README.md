@@ -6,16 +6,18 @@ Web-based performance calculator for the CCG Bell 412EPI fleet, built from the C
 
 Open `index.html` in a browser (or via GitHub Pages). Single self-contained file, works offline.
 
-## Current version: v0.05
+## Current version: v0.06
 
 - **Splash screen** — 2-second launch image (as on the planned iPad app); tap to skip.
 - **Hover** — IGE/OGE hover ceiling at takeoff power, MCP and EHP-kit MCP; 100% Nr (FM-5) and 103% Nr (FMS-74.5); standard / 9-seat / external load; heater off / standard / winterization; OGE Area A.
 - **WAT** — FM-5 / FMS-35.5 / FMS-74.5 weight-altitude-temperature limits.
 - **CAT-A** — FMS-62.5 Parts A–D (side step, backup, runway, offset backup) and FMS-74.5 Part D runway above 11,900 lb: max GW with headwind credit, drop down / height loss, TDP, rejected TO, takeoff path to 1000 ft.
 - **Rate of climb** — FM-5 Fig 4-7/4-8/4-9, FMS-1.5 (winterization heater), FMS-74.5 (12,200 lb).
+- **Power check** (v0.06) — FM-5 Fig 4-1 sheets 1–2: max allowable MGT and Ng from test torque, PA and OAT; MGT/Ng margin and pass/fail for both engines; check-limit warnings (825 °C, 102.0% Ng, 66.2% Q). Lines digitized from the scanned figure (raster).
+- **Density altitude** (v0.06) — FM-5 Fig 4-2: DA, σ, 1/√σ and KTAS from KCAS, drawn on the chart (ISA, matches the Bell chart within ~10 ft).
 
-Chart curves are read directly from the vector drawings in the Bell PDFs (no hand digitizing); each result is shown with its calculation path drawn on the original chart.
+Chart curves are read directly from the vector drawings in the Bell PDFs (no hand digitizing); the power assurance figure is a scan, so its straight lines are fitted from a 430 dpi render; each result is shown with its calculation path drawn on the original chart.
 
 ## tools/
 
-Python scripts that extract the chart data from the PDFs and assemble `index.html` (`build.py`, `build_catA.py`, `build_roc.py`, then `assemble.py`). The PDFs themselves are not included.
+Python scripts that extract the chart data from the PDFs and assemble `index.html` (`build.py`, `build_catA.py`, `build_roc.py`, `build_pwr.py`, then `assemble.py`). The PDFs themselves are not included.
