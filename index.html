@@ -134,7 +134,7 @@
   table.hv td.bad{background:#fdf2f4}table.hv td.bad b{color:var(--bad)}
   table.hv td.na{color:#9aa5ae;font-size:12px}
   table.hv td.sel{outline:3px solid #0a6ad1;outline-offset:-3px}
-  .cfgrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+  .cfgrow{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,.85fr) minmax(0,1.1fr) minmax(0,1.2fr);gap:8px;margin-top:10px}
   @media (max-width:820px){.cfgrow{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:480px){.cfgrow{grid-template-columns:1fr}}
   .legend{font-size:12px;color:var(--mute);margin:6px 0 0;line-height:1.5}
   .chart.selc{border:2px solid #0a6ad1}
@@ -163,10 +163,10 @@
     <label class="f">Wind (kt)<input id="wspd" type="number" inputmode="decimal" min="0" max="60" value="0"></label>
   </div>
   <div class="cfgrow">
-    <label class="f">Cabin configuration<select id="cfg"><option value="std">Standard (10+ pax seats)</option><option value="p9">9 or fewer pax seats (FMS-35.5)</option><option value="ext">External load — cargo hook</option></select></label>
+    <label class="f">Cabin configuration<select id="cfg"><option value="std">Standard (10+ pax)</option><option value="p9">9 pax or less (FMS-35.5)</option><option value="ext">External load (hook)</option></select></label>
     <label class="f">Fuel type<select id="fuel"><option value="a">Jet A / A-1</option><option value="b">Jet B</option></select></label>
-    <label class="f">Heater<select id="heat"><option value="off">OFF</option><option value="on">Standard heater ON</option><option value="win">Winterization heater ON</option></select></label>
-    <label class="f">Extended Hover Perf kit (FMS-80.5)<select id="ehp"><option value="yes">Installed — show EHP rows</option><option value="no">Hide EHP rows</option></select></label>
+    <label class="f">Heater<select id="heat"><option value="off">OFF</option><option value="on">Standard ON</option><option value="win">Winterization ON</option></select></label>
+    <label class="f">Extended Hover Perf kit (FMS-80.5)<select id="ehp"><option value="yes">Show EHP rows</option><option value="no">Hide EHP rows</option></select></label>
   </div>
 </section>
 
