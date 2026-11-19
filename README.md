@@ -8,7 +8,7 @@ Open `index.html` in a browser (or via GitHub Pages). Single self-contained file
 
 ## Current version: v0.07
 
-- **Limitations** (v0.07, first tab) — FM-5 Section 1 checks against Conditions: PA 20,000 ft, OAT envelope (−40 °C to 51.7 °C −2 °C/1,000 ft), DA 14,000 ft for TO/LDG/IGE (16,000 ft with FMS-35.5), fuel type (Jet A family above −30 °C), heater ≤21 °C, 53 Ah cold-soaked battery start ≥−25 °C, gross weight, hover crosswind/tailwind (Fig 1-3) and OGE critical azimuths; envelope chart; placard VNE (Fig 1-6) with torque, autorotation, single-autopilot and FMS-9.5 external-load values; WAT (Fig 1-2) moved here.
+- **Limitations** (v0.07, first tab) — 429-style: OAT limits and margin (FM-5 1-11), fuel temperature limits for the fuel selected in Conditions (Jet A / A-1 above −30 °C; Jet B all temperatures, FM-5 1-17-A), valid-fuels list, and the WAT charts (Fig 1-2, FMS-74.5 Fig 1A-2).
 - **Atmosphere & wind** card in the 429 layout (PA, DA with rule of thumb, ISA deviation, headwind, crosswind, factored headwind). Tabs in 429 order: Limitations, CAT-A, Hover, ROC, Power Check.
 - **Splash screen** — 2-second launch image (as on the planned iPad app); tap to skip.
 - **Hover** — IGE/OGE hover ceiling at takeoff power, MCP and EHP-kit MCP; 100% Nr (FM-5) and 103% Nr (FMS-74.5); standard / 9-seat / external load; heater off / standard / winterization; OGE Area A.
