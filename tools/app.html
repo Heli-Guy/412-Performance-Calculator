@@ -17,6 +17,15 @@
   table.ca td.n{color:var(--mute);font-size:12px}
   table.ca.pw th{font-size:11px;color:var(--mute);text-align:right;font-weight:600;padding:4px 6px} table.ca.pw td.n{text-align:right;font-size:14px;color:inherit} table.ca.pw td.v{font-size:15px} table.ca td.v.neg{color:var(--bad)} i.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px} table.ca .s{display:block;font-weight:400;font-size:11px;color:var(--mute)}
   .eng{display:grid;grid-template-columns:auto repeat(3,1fr);gap:8px 10px;align-items:end;margin-bottom:12px} .eng b{font-size:13px;padding-bottom:9px} .eng .k{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.5px}
+  .res.atmo{grid-template-columns:repeat(3,1fr)} @media(max-width:560px){.res.atmo{grid-template-columns:repeat(2,1fr)}}
+  .fuelrow.warn .ic{background:var(--warn)} .fuelrow{font-size:15px} .fuelrow .why{max-width:46%}
+  .limwrap{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start} .limwrap .arlist{flex:1 1 420px} .envbox{flex:1 1 380px;max-width:600px}
+  svg.env{width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:10px}
+  svg.env .g{stroke:#e6eaed;stroke-width:1} svg.env .ax{font-size:11px;fill:var(--mute)} svg.env .lb{font-size:10.5px;fill:#55606a}
+  svg.env .envp{fill:#e9f5ee;stroke:#1b7a3d;stroke-width:1.6} svg.env .dal{fill:none;stroke:#0a6ad1;stroke-width:1.6;stroke-dasharray:6 4} svg.env text.dal{fill:#0a6ad1;stroke:none}
+  svg.env .fl{stroke:#b26a00;stroke-dasharray:4 3;stroke-width:1.3} svg.env .ht{stroke:#7a4fb5;stroke-dasharray:4 3;stroke-width:1.3} svg.env .bt{stroke:#5e6b75;stroke-dasharray:2 3;stroke-width:1.3}
+  svg.env .pt{fill:var(--path);stroke:#fff;stroke-width:2}
+  table.vne{border:1px solid var(--line)} table.vne th,table.vne td{padding:4px 7px;text-align:center;border:1px solid #e3e7ea} table.vne th{background:#f3f5f7;font-size:12px} table.vne td.hl{background:#fde3e6;font-weight:700;color:var(--bad)}
   table.ca tr.ok td.v{color:var(--ok)} table.ca tr.bad td.v{color:var(--bad)} table.ca tr.tot td{background:#f3f5f7}
   table.hv{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:15px}
   table.hv th,table.hv td{border:1px solid var(--line);padding:7px 8px;text-align:center}
@@ -39,7 +48,7 @@
 </head>
 <body>
 <div id="splash" role="img" aria-label="Bell 412 CCG"><img src="/*SPLASH*/" alt=""></div>
-<header><h1>B412EPI <span>Performance</span></h1><div class="ver">v0.06 · test build · CCG</div></header>
+<header><h1>B412EPI <span>Performance</span></h1><div class="ver">v0.07 · test build · CCG</div></header>
 <main>
 
 <section class="card" id="cond">
@@ -62,19 +71,32 @@
 
 <section class="card">
   <h2>Atmosphere &amp; wind</h2>
-  <div class="res" id="atmo"></div>
+  <div class="res atmo" id="atmo"></div>
 </section>
 
 <div class="tabs" id="tabs">
-  <button class="on" data-t="hover">Hover</button>
-  <button data-t="wat">WAT</button>
+  <button class="on" data-t="limits">Limitations</button>
   <button data-t="cata">CAT-A</button>
-  <button data-t="roc">Rate of climb</button>
-  <button data-t="pwr">Power check</button>
+  <button data-t="hover">Hover</button>
+  <button data-t="roc">ROC</button>
+  <button data-t="pwr">Power Check</button>
   <button class="todo" data-t="todo">Still to build</button>
 </div>
 
-<section class="card" id="t-hover">
+<section class="card" id="t-limits">
+  <h2>Limitations — BHT-412-FM-5 Section 1 (and supplements)</h2>
+  <div class="cfgrow"><label class="f" style="min-width:340px">Fuel<select id="limFuel"><option value="a">Jet A / Jet A-1 / JP-5 / JP-8 (F-34, F-44)</option><option value="b">Jet B / JP-4 (F-40)</option></select></label></div>
+  <div class="limwrap">
+    <div class="fuelbox arlist" id="limChecks"></div>
+    <div class="envbox"><div id="limEnv"></div><p class="legend">Red dot: current PA and OAT. Shaded: operating envelope (−40 °C to max OAT, 20,000 ft PA).</p></div>
+  </div>
+  <h2 style="margin-top:20px">Never-exceed speed — FM-5 1-7 and placard (Fig 1-6)</h2>
+  <div class="res" id="limVne"></div>
+  <div id="limVneT" style="overflow-x:auto;margin-top:10px"></div>
+  <p class="legend">Other V<sub>NE</sub>: doors symmetrically open or removed 100 KIAS (Bell blanket / deluxe interior) · cargo doors open asymmetrically 80 KIAS · doors in transit or unlocked 60 KIAS · sideward flight 45 kt to 2,000 ft Hd, rearward 35 kt · 103% N<sub>R</sub> limited to CAT-A below 70 KIAS · minimum IFR 60 KIAS.</p>
+</section>
+
+<section class="card" id="t-hover" style="display:none">
   <h2>Hover ceiling — maximum gross weight</h2>
   <table class="hv" id="hovT"></table>
   <div class="msgs" id="hovMsgs"></div>
@@ -82,8 +104,8 @@
   <p class="legend"><i style="background:#d0021b"></i>calculation path &nbsp; <i style="background:#0a6ad1"></i>your gross weight &nbsp; <i style="background:#e07b00"></i>Area A limit (OGE) · Tap a result to jump to its chart; tap a chart to enlarge.</p>
 </section>
 
-<section class="card" id="t-wat" style="display:none">
-  <h2>Weight-Altitude-Temperature — takeoff, landing &amp; IGE manoeuvres</h2>
+<section class="card" id="t-wat">
+  <h2>Weight-Altitude-Temperature — takeoff, landing &amp; IGE manoeuvres (Fig 1-2)</h2>
   <div class="res" id="watRes"></div>
   <div class="msgs" id="watMsgs"></div>
   <div class="pair" id="wrapW"></div>
@@ -137,7 +159,7 @@
   <ul class="todo-list">
     <li>CAT-A — FMS-90.x elevated helipad minimum surface area; single-engine rate of climb (information only)</li>
     <li>Takeoff distance, single-engine landing distance</li>
-    <li>Critical relative wind azimuths, Section 1 OAT / wind limits</li>
+    <li>Critical relative wind azimuths (FM-5 Section 4); EHP max continuous mast torque below 60 KIAS (FMS-80.5 Fig 1A-8); height-velocity diagram</li>
   </ul>
 </section>
 
@@ -306,10 +328,13 @@ function calc(){
   const pa=B.pressureAltitude(elev,alt), da=B.densityAltitude(pa,oat), isa=15-1.98*pa/1000;
   const hw=ws*Math.cos(rw*Math.PI/180), xw=ws*Math.sin(rw*Math.PI/180);
   $('condSum').textContent=`PA ${f0(pa)} ft · DA ${f0(da)} ft · ${oat} °C · ${f0(gw)} lb`;
-  $('atmo').innerHTML=`<div class="r"><div class="k">Pressure altitude</div><div class="v">${f0(pa)}</div><div class="s">ft</div></div>
-   <div class="r"><div class="k">Density altitude</div><div class="v">${f0(da)}</div><div class="s">ft · ISA ${oat-isa>=0?'+':''}${(oat-isa).toFixed(1)} °C</div></div>
-   <div class="r"><div class="k">Headwind</div><div class="v">${hw>=0?'':'−'}${Math.abs(hw).toFixed(0)}</div><div class="s">kt ${hw<0?'(tailwind)':''}</div></div>
-   <div class="r"><div class="k">Crosswind</div><div class="v">${Math.abs(xw).toFixed(0)}</div><div class="s">kt ${xw>0.5?'from right':xw<-0.5?'from left':''}</div></div>`;
+  const rwn=((rw%360)+360)%360, inCred=rwn<=45||rwn>=315, fhw=inCred&&hw>0?0.5*hw:0;
+  $('atmo').innerHTML=`<div class="r"><div class="k">Pressure alt</div><div class="v">${f0(pa)} ft</div><div class="s">Altimeter ${alt.toFixed(2)} inHg</div></div>
+   <div class="r"><div class="k">Density alt</div><div class="v">${f0(da)} ft</div><div class="s">rule of thumb (120 ft/°C) ${f0(pa+120*(oat-isa))} ft</div></div>
+   <div class="r"><div class="k">ISA deviation</div><div class="v">${oat-isa>=0?'+':'−'}${Math.abs(oat-isa).toFixed(1)} °C</div><div class="s">ISA ${isa.toFixed(1)} °C at ${f0(pa)} ft</div></div>
+   <div class="r"><div class="k">${hw<-0.05?'Tailwind':'Headwind'}</div><div class="v">${Math.abs(hw).toFixed(1)} kt</div><div class="s">Relative wind ${rwn}° · ${f0(ws)} kt</div></div>
+   <div class="r"><div class="k">Crosswind</div><div class="v">${Math.abs(xw).toFixed(1)} kt</div><div class="s">${xw>0.05?'from right':xw<-0.05?'from left':'—'}</div></div>
+   <div class="r"><div class="k">Factored HW</div><div class="v">${fhw.toFixed(1)} kt</div><div class="s">${inCred?'0.5 headwind (CAT-A, within ±45°)':'no credit outside ±45°'}</div></div>`;
 
   // ---------- HOVER ----------
   const res={}, msgs=new Set();
@@ -365,6 +390,7 @@ function calc(){
   $('watRes').innerHTML=wh; $('wrapW').innerHTML=wc;
   $('watMsgs').innerHTML='<div class="msg">Allowable weights from the WAT chart may exceed hover capability — check the hover ceiling.</div>';
   try{ calcROC({pa,oat,gw,heat}); }catch(e){ $('rocRes').innerHTML='<div class="msg">ROC error: '+e.message+'</div>'; console.error(e); }
+  try{ calcLimits({pa,oat,da,gw,rw,ws,cfg,heat}); }catch(e){ $('limChecks').innerHTML='<div class="msg">Limitations error: '+e.message+'</div>'; console.error(e); }
   try{ calcPWR({pa,oat,da}); }catch(e){ $('pwrRes').innerHTML='<div class="msg">Power check error: '+e.message+'</div>'; console.error(e); }
   try{ calcCatA({pa,oat,gw,rw,ws,da}); }catch(e){ $('caRes').innerHTML='<div class="msg">CAT-A error: '+e.message+'</div>'; console.error(e); }
   bindZoom();
@@ -372,13 +398,14 @@ function calc(){
 /*CATAUI*/
 /*ROCUI*/
 /*PWRUI*/
+/*LIMUI*/
 $('hovT').addEventListener('pointerdown',e=>{const td=e.target.closest('td.c');if(td){SEL=td.dataset.id;calc.jump=SEL;setTimeout(calc,0);}});
 function bindZoom(){document.querySelectorAll('.chart').forEach(c=>c.onclick=()=>{$('zc').innerHTML=c.querySelector('svg').outerHTML.replace(/ah(\d+)/g,'zah$1');$('zoom').classList.add('on');});}
 function zClose(){$('zoom').classList.remove('on');}
 $('zoom').addEventListener('click',zClose);document.addEventListener('keydown',e=>{if(e.key==='Escape')zClose()});
 document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  ['hover','wat','cata','roc','pwr','todo'].forEach(t=>$('t-'+t).style.display=t===b.dataset.t?'':'none');}));
+  const sh={limits:['limits','wat']}, on=sh[b.dataset.t]||[b.dataset.t]; ['limits','wat','hover','cata','roc','pwr','todo'].forEach(t=>$('t-'+t).style.display=on.includes(t)?'':'none');}));
 document.querySelectorAll('input,select').forEach(e=>{e.addEventListener('input',calc);e.addEventListener('change',()=>{if(e.tagName==='INPUT')clampField(e);calc();});});
 const hh=()=>document.documentElement.style.setProperty('--hh',document.querySelector('header').offsetHeight+'px');hh();addEventListener('resize',hh);
 calc();
