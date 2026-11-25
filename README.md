@@ -6,7 +6,18 @@ Web-based performance calculator for the CCG Bell 412EPI fleet, built from the C
 
 Open `index.html` in a browser (or via GitHub Pages). Single self-contained file, works offline.
 
-## Current version: v0.07
+## Current version: v0.08
+
+### v0.08 — brought in line with the 429 app (v0.86), plus 412-only additions
+- 429 layout: Chrome-style tabs (Limitations, CAT-A Helipad, CAT-A Runway, Stay Up Weight, Hover, ROC, Power Check), dark mode, sticky Conditions / Aircraft configuration frames, **Current METAR** button, relative-wind pictogram with the FM-5 Fig 4-3 OGE critical azimuths, ON/OFF switches (heater FMS-1.5, air conditioner, ≤ 9 pax FMS-35.5, hook load FMS-9.5), input limits with notes, weights in Lbs, settings and tab remembered.
+- **CAT-A Helipad** (Parts A / B / D) and **CAT-A Runway** (Part C, FMS-74.5 Part D above 11,900 lb): 429-style cards in fixed rows (max T/O weight, GW margin, TDP/LDP, obstacle clearance / backup obstacle, height loss, OEI takeoff, stage 1, level acceleration, stage 2, total), 2-min OEI ROC at V_TOSS (FMS-62.5 Fig 4A-8) and OEI MCP ROC at V_Y (FM-5 Fig 4-9) cards, the Bell emergency profile figure (3A-1 / 3B-1 / 3C-1 / 3D-1) with this takeoff's values and a distance strip. Backup obstacle check from MD-5 Fig 4-11; flyaway obstacle raises the TDP (height loss + 15 ft + obstacle). Results dashed when GW is over the CAT-A weight, wind is outside limits, the backup obstacle is not clear, or heater / A/C is ON (FMS-62.5: cabin heat and A/C OFF).
+- **Stay Up Weight**: zero-ROC weight and OEI ROC at cruise altitude / OAT (continuous OEI FM-5 Fig 4-9; 2-min OEI FMS-62.5 Fig 4A-8). The PT6T-9 has no 30-min OEI rating.
+- **Hover**: cards like the aircraft HOVER PERFORMANCE page (IGE min spec, OGE MCP with EHP, OGE T/O power; 100% N_R, 103% value below) — match the training-deck screenshots within 0.3 %. EHP max continuous mast torque below 60 KIAS (FMS-80.5 Fig 1A-8 / 1B-8, 90.3 % at 8,000 ft / 12 °C). OEI hover weight, 2-min and 30-sec (MD-5 Fig 4-3A / 4-3B, Bell example within 0.2 %).
+- **Performance Class 2 helideck** (MD-5 Fig 4-4 WAT, Fig 4-5 drop-down takeoff / balked landing) on the Helipad tab — Bell examples 11,650 lb (exact) and 89 ft drop-down (app 91 ft).
+- Air conditioner (Air Comm 412AC-104): −111 ft/min AEO ROC, −150 lb hover; CAT-A not valid with A/C ON.
+- Limitations: H-V diagram applicability (limitation only with more than 9 passenger seats when not flown CAT-A — FMS-35.5).
+- Fix: FMS-80.5 Fig 4A-5 (100 %, heater off, ≥ 0 °C) 30 °C line was picked up from the Area B shading edge.
+
 
 - **Limitations** (v0.07, first tab) — 429-style: OAT limits and margin (FM-5 1-11), fuel temperature limits for the fuel selected in Conditions (Jet A / A-1 above −30 °C; Jet B all temperatures, FM-5 1-17-A), valid-fuels list, and the WAT charts (Fig 1-2, FMS-74.5 Fig 1A-2).
 - **Atmosphere & wind** card in the 429 layout (PA, DA with rule of thumb, ISA deviation, headwind, crosswind, factored headwind). Tabs in 429 order: Limitations, CAT-A, Hover, ROC, Power Check.

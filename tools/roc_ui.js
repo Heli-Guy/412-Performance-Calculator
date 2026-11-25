@@ -1,6 +1,6 @@
 // ================= RATE OF CLIMB UI =================
 function calcROC(ctx){
-  const {pa,oat,gw,heat}=ctx, E=window.CATA;
+  const {pa,oat,gw,heat,acOn}=ctx, E=window.CATA;
   const doors=$('rocDoors').value==='open';
   const G=Math.max(7000,Math.min(gw,12200));
   const rows=[], charts=[], msgs=[];
@@ -10,7 +10,7 @@ function calcROC(ctx){
     const list=Object.keys(RC).filter(k=>RC[k].grp===`roc_${pw}_${h}`).map(k=>RC[k]);
     if(list.length<2){ rows.push([LBL[pw],'—','no chart for this configuration','']); continue; }
     const S=E.sheets(list,G,s=>E.fx(s,pa,oat,null));
-    let v=S.v; if(doors)v-=S.sa.doors||275;
+    let v=S.v; if(doors)v-=S.sa.doors||275; if(acOn&&pw!=='oei')v-=111;
     const src=s=>`${s.src} Fig ${s.fig}`;
     rows.push([LBL[pw],`${fin(v)?Math.round(v).toLocaleString('en-US'):'—'} ft/min`,
       `at ${f0(G)} lb (sheets ${S.sa.gw.toLocaleString()} / ${S.sb.gw.toLocaleString()} lb) · ${h==='off'?'heater off':h==='on'?'heater on':'winterization heater on'}${doors?` · doors open: −${S.sa.doors||275} ft/min, climb at 60 KIAS`:' · 70 KIAS'}`, fin(v)&&v>0?'':'bad']);
@@ -19,6 +19,8 @@ function calcROC(ctx){
       charts.push(`<div class="chart">${svgChart(s,s.key,P,[[r.x,r.y,Math.round(r.v)+' ft/min']])}<div class="cap"><span>${src(s)} · ${LBL[pw]} · ${s.gw.toLocaleString()} lb</span><span>p.${s.page}</span></div></div>`);
     }
   }
+  if(acOn)msgs.push('Air conditioner ON: twin-engine rates of climb reduced by 111 ft/min (Air Comm 412AC-104 supplement). Turn the A/C OFF after an engine failure — OEI rates are without A/C.');
+  if(gw>12200)msgs.push('Gross weight above the 12,200 lb maximum — 12,200 lb sheets shown.');
   if(gw>11900)msgs.push('Above 11,900 lb the 12,200 lb sheets come from FMS-74.5.');
   if(gw<7000)msgs.push('Gross weight below 7,000 lb — 7,000 lb sheet used.');
   $('rocRes').innerHTML='<table class="ca">'+rows.map(([a,b,c,s])=>`<tr class="${s}"><td class="l">${a}</td><td class="v">${b}</td><td class="n">${c}</td></tr>`).join('')+'</table>';

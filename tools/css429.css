@@ -26,6 +26,8 @@
   .r .v{font-size:26px;font-weight:650;font-variant-numeric:tabular-nums;margin-top:2px}
   .r .s{font-size:12px;color:var(--mute);margin-top:2px}
   .r.big .v{font-size:32px}
+  .r .v.wt{white-space:nowrap}.r .v .u{font-size:.62em;font-weight:600;margin-left:1px}
+  #stayW{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
   #rocA .r .v,#rocO .r .v,.roccol .r .v{font-size:26px;white-space:nowrap}.r.sm .v{font-size:20px}
   .r.ok{border-color:#9ccfaf;background:#f2faf5}.r.ok .v{color:var(--ok)}
   .r.bad{border-color:#f0a3ae;background:#fdf2f4}.r.bad .v{color:var(--bad)}
@@ -45,8 +47,12 @@
   table.ar tr.off td{color:#aab3ba;text-decoration:line-through}
   .arwrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.arwrap table.ar{margin:4px 0;order:2}
   .arlist{flex:1;min-width:260px}.arlist .fuelrow:first-child{border-top:0}
-  .catwrap{display:grid;grid-template-columns:1fr 190px;gap:10px;align-items:start}.roccol{display:flex;flex-direction:column;gap:10px}
-  @media (max-width:600px){.catwrap{grid-template-columns:1fr}}
+  .catwrap{display:block}.roccol{display:none}
+  #heli,#rwy{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .flyaway{grid-column:4/5}
+  @media (max-width:600px){.flyaway{grid-column:auto}}
+  .rowdiv{grid-column:1/-1;height:14px;margin:2px -14px;background:var(--bg);box-shadow:inset 0 3px 4px -3px rgba(0,0,0,.12),inset 0 -3px 4px -3px rgba(0,0,0,.12)}
+  @media (max-width:600px){#heli,#rwy{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .rrow{margin-bottom:10px}.rlab{font-size:12px;font-weight:700;color:var(--mute);letter-spacing:.8px;margin:2px 0 6px}
   #rocA,#rocO{grid-template-columns:repeat(4,minmax(0,1fr))}
   @media (max-width:600px){#rocA,#rocO{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -57,7 +63,32 @@
   .btn{font-size:15px;padding:9px 12px;border-radius:8px;border:1px solid #0a6ad1;background:#eef5fd;color:#0a6ad1;font-weight:600;width:100%}
   #clampNote{display:none;margin:-2px 0 8px;padding:6px 10px;border-radius:8px;background:#fff6e5;border:1px solid #e8c27a;color:#7a4b00;font-size:14px}
   #clampNote.on{display:block}
+  input.wx{background:#e6f0fc!important;border-color:#0a6ad1!important;color:#0a4a9a!important;font-weight:600}
+  .wxbtnwrap{display:flex;flex-direction:column;gap:4px;font-size:12px;grid-column:span 2}
+  #wxbtn{display:flex;align-items:center;justify-content:center;gap:10px;height:100%;min-height:40px;border-radius:8px;border:1px solid #0a6ad1;background:#0a6ad1;color:#fff;font-size:17px;cursor:pointer;padding:4px 10px}
+  #wxbtn small{font-size:13px;font-weight:600;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.22)}
+  #wxbtn.busy{opacity:.6;cursor:progress}
+  #wxbtn small.g{background:#14883e}#wxbtn small.a{background:#d98a00}#wxbtn small.r{background:#c62828}
+  #windpic{grid-column:-4/-1;display:flex;align-items:center;justify-content:flex-end;gap:10px;font-size:12.5px;color:#33475b;line-height:1.3;text-align:right}
+  #windpic svg{width:66px;height:66px;flex:none}
+  #windpic{--wp-heli:#0a5bd1;--wp-ring:#d0021b;--wp-arrow:#d0021b}
+  #windpic.nogo{--wp-arrow:#d0021b}
+  @media (prefers-color-scheme:dark){#windpic{--wp-heli:#f6eb82;--wp-ring:#73bcb9;--wp-arrow:#73bcb9}#windpic.nogo{--wp-arrow:#ff5a5a}}
+  #windpic b{font-size:14px;color:#1f2d3d}
+  #windpic .bad{color:#c62828;font-weight:700}
+  @media (max-width:600px){#windpic{grid-column:span 3}}
+  #wxline{display:none;margin-top:8px;font-size:13px;color:#33475b;line-height:1.35}
+  #wxline.on{display:block}#wxline code{font-size:12.5px;background:#f1f4f8;padding:1px 5px;border-radius:4px;word-break:break-word}
+  #wxline .err{color:#c62828;font-weight:600}
+  @media (max-width:600px){.wxbtnwrap{grid-column:span 1}}
   input.clamped{outline:2px solid #e8a33d;background:#fff6e5}
+  #splash{position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s ease}
+  #splash.out{opacity:0;pointer-events:none}
+  /* fit by width, keeping the picture's proportions; only on very short windows (phone landscape) shrink so the title stays on screen */
+  #splash img{width:min(96vw,141vh);height:auto;display:block;-webkit-mask-image:radial-gradient(ellipse 60% 62% at 50% 50%,#000 72%,transparent 100%);mask-image:radial-gradient(ellipse 60% 62% at 50% 50%,#000 72%,transparent 100%)}
+  #splash .sp-t{margin-top:18px;color:#fff;font-size:30px;font-weight:700;letter-spacing:.5px}
+  #splash .sp-t span{color:#e5484d}
+  #splash .sp-s{margin-top:6px;color:#9aa5ae;font-size:14px}
   h3.sub{font-size:13px;margin:16px 0 6px;color:var(--ink);font-weight:650}
   .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pair .chart{margin-top:0}
   @media (max-width:600px){.pair{grid-template-columns:1fr}}
@@ -67,13 +98,37 @@
   .chart{position:relative;margin-top:6px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
   .chart svg{display:block;width:100%;height:auto;touch-action:manipulation}
   .chart .cap{font-size:12px;color:var(--mute);padding:6px 10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
-  #cond{position:sticky;top:var(--hh,44px);z-index:4;box-shadow:0 4px 12px rgba(0,0,0,.18);padding:10px 12px}
+  #stick{position:sticky;top:var(--hh,44px);z-index:4;background:var(--bg);margin:-8px -6px 14px;padding:8px 6px 6px}
+  #stick>.card:last-child{margin-bottom:0}
+  #stick>.card{box-shadow:0 4px 12px rgba(0,0,0,.18);padding:10px 12px}
+  #stick>#cond{margin-bottom:6px}
+  #acft h2{margin-bottom:6px}
+  #stick label.f input,#stick label.f select,#stick .sw{height:40px;min-height:40px;box-sizing:border-box}
+  #stick label.f select{-webkit-appearance:none;appearance:none;padding-right:26px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+  #stick .sw{width:110px}#stick .sw .k{width:34px;height:34px;border-radius:17px}#stick .sw.on .k{left:72px}
+  div.f{display:flex;flex-direction:column;font-size:12px;color:var(--mute);gap:4px}
+  .sw{position:relative;width:110px;height:38px;border-radius:19px;border:1px solid #b9c1c8;background:linear-gradient(#eceff1,#fff);cursor:pointer;padding:0;box-shadow:inset 0 1px 3px rgba(0,0,0,.15);transition:background .2s}
+  .sw .t{position:absolute;top:0;bottom:0;right:14px;display:flex;align-items:center;font-size:17px;font-weight:800;color:#8a949c;letter-spacing:.5px}
+  .sw .k{position:absolute;top:2px;left:2px;width:32px;height:32px;border-radius:16px;background:linear-gradient(#fff,#e4e7ea);border:1px solid #aeb6bd;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+  .sw.on{background:linear-gradient(#3b8cf0,#0a5bd1);border-color:#0a4aa8}
+  .sw.on .t{right:auto;left:16px;color:#fff}
+  .sw.on .k{left:74px}
+  #acft .grid6 label.f input,#acft .grid6 label.f select{font-size:17px;padding:6px 7px}
   #cond h2{margin-bottom:8px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
   #condSum{text-transform:none;letter-spacing:0;color:var(--ink);font-weight:600}
   #cond .grid6 label.f input,#cond .grid6 label.f select{font-size:17px;padding:6px 7px}
-  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-  .tabs button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 14px;font-size:14px;color:var(--ink)}
-  .tabs button.on{background:var(--hdr);color:#fff;border-color:var(--hdr)}
+  /* Chrome-style tab strip: the active tab joins the card below it */
+  .tabs{--strip:#dbe3ec;display:flex;align-items:flex-end;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;gap:0;margin:0;padding:8px 14px 0;background:var(--strip);border-radius:14px 14px 0 0}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{position:relative;flex:none;border:0;background:transparent;border-radius:10px 10px 0 0;padding:10px 18px 11px;font-size:14px;color:#3c4a57;cursor:pointer;white-space:nowrap}
+  .tabs button:not(.on):hover{background:rgba(255,255,255,.45)}
+  .tabs button+button:not(.on){box-shadow:inset 1px 0 0 0 transparent}
+  .tabs button:not(.on)+button:not(.on)::after{content:'';position:absolute;left:0;top:11px;bottom:11px;width:1px;background:rgba(0,0,0,.18)}
+  .tabs button.on{background:var(--card);color:var(--ink);font-weight:600;z-index:1}
+  .tabs button.on::before,.tabs button.on::after{content:'';position:absolute;bottom:0;width:12px;height:12px;pointer-events:none}
+  .tabs button.on::before{left:-12px;background:radial-gradient(circle at 0 0,transparent 11.5px,var(--card) 12px)}
+  .tabs button.on::after{right:-12px;background:radial-gradient(circle at 100% 0,transparent 11.5px,var(--card) 12px)}
+  .tabs~section.card{border-top-left-radius:0;border-top-right-radius:0;margin-top:0}
   .tabs button.todo{color:#9aa5ae}
   .todo-list{font-size:14px;line-height:1.6;margin:0;padding-left:18px}
   .todo-list span{color:var(--mute);font-size:12px}
@@ -87,3 +142,36 @@
   details summary{cursor:pointer;font-size:13px;color:var(--mute)}
   table.tr{font-size:12px;border-collapse:collapse;margin-top:6px;font-variant-numeric:tabular-nums}
   table.tr td{padding:2px 8px;border-bottom:1px solid #eef1f3}
+
+  /* ---------- dark mode (follows the iPad / Mac setting) ---------- */
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0e1317;--card:#182027;--ink:#e4e9ed;--mute:#9aa8b3;--line:#33414d;--hdr:#070a0d;--ok:#52c47f;--bad:#ff6b78;--warn:#f0b44c}
+    label.f input,label.f select,.seg button{background:#10171d;color:var(--ink);border-color:var(--line)}
+    .tabs{--strip:#0a0f13}
+    .tabs button{color:#9aa8b3}
+    .tabs button:not(.on):hover{background:rgba(255,255,255,.06)}
+    .tabs button:not(.on)+button:not(.on)::after{background:rgba(255,255,255,.18)}
+    .tabs button.on{color:var(--ink)}
+    .r.ok{border-color:#2f6f48;background:#13251a}
+    .r.bad{border-color:#7d3340;background:#2a1418}
+    .r.warn{border-color:#7a5a20;background:#2a2212}.r.warn .v{color:#f0b44c}
+    .msg{background:#2a2212;color:#f3cf8c;border-color:#6a5020}
+    .msg.bad{background:#2a1418;color:#ff9aa5;border-color:#7d3340}
+    #clampNote{background:#2a2212;border-color:#6a5020;color:#f3cf8c}
+    input.wx{background:#0f2a44!important;border-color:#3b8be0!important;color:#9fcbff!important}
+    input.clamped{background:#2a2212}
+    #wxline,#windpic{color:#b6c2cc}#windpic b{color:#e4e9ed}
+    #wxline code{background:#10171d;color:#d7dee4}
+    #wxline .err,#windpic .bad{color:#ff6b78}
+    .fuelrow{border-top-color:#26313a}
+    table.ar th{background:#222c35}table.ar th,table.ar td{border-color:#46535e}
+    table.ar tr.aB td.an{background:#3a434b}table.ar tr.aC td.an{background:#5b646c}
+    table.ar tr.off td{color:#5f6a73}
+    table.tr td{border-bottom-color:#26313a}
+    .btn{background:#0f2a44;border-color:#3b8be0;color:#9fcbff}
+    .sw{background:linear-gradient(#232c34,#2c363f);border-color:#46535e}.sw .t{color:#9aa8b3}.sw.on{background:linear-gradient(#3b8cf0,#0a5bd1);border-color:#0a4aa8}.sw.on .t{color:#fff}
+    /* charts stay on "paper", dimmed so they don't glare at night */
+    .chart{background:#dcdcdc;border-color:#33414d}.chart svg{filter:brightness(.86)}
+    .chart .cap{background:#182027;color:var(--mute)}
+    .zoom svg{filter:brightness(.86)}
+  }

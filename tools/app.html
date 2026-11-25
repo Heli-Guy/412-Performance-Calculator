@@ -24,6 +24,8 @@
   table.ca td.n{color:var(--mute);font-size:12px}
   table.ca.pw th{font-size:11px;color:var(--mute);text-align:right;font-weight:600;padding:4px 6px} table.ca.pw td.n{text-align:right;font-size:14px;color:inherit} table.ca.pw td.v{font-size:15px} table.ca td.v.neg{color:var(--bad)} i.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px} table.ca .s{display:block;font-weight:400;font-size:11px;color:var(--mute)}
   .eng{display:grid;grid-template-columns:auto repeat(3,1fr);gap:8px 10px;align-items:end;margin-bottom:12px} .eng b{font-size:13px;padding-bottom:9px} .eng .k{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.5px}
+  @media (max-width:600px){.wxbtnwrap{grid-column:span 3}}
+  #hovCards,#oeiCards,#mtCard{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
   .res.atmo{grid-template-columns:repeat(3,1fr)} @media(max-width:560px){.res.atmo{grid-template-columns:repeat(2,1fr)}}
   .fuelrow.warn .ic{background:var(--warn)} .fuelrow{font-size:15px} .fuelrow .why{max-width:46%}
   .limwrap{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start} .limwrap .arlist{flex:1 1 420px} .envbox{flex:1 1 380px;max-width:600px}
@@ -51,6 +53,10 @@
   .chart.selc{border:2px solid #0a6ad1}
   .chart.nochart{background:#f6f7f8}
   .legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:4px}
+  @media (prefers-color-scheme:dark){
+    table.hv th,table.ca tr.tot td{background:#222c35} table.hv td.ok{background:#13251a} table.hv td.bad{background:#2a1418}
+    table.hv th,table.hv td{border-color:#33414d} .chart.nochart{background:#141b21}
+  }
 </style>
 </head>
 <body>
@@ -59,50 +65,67 @@
   <div class="sp-t">B412 <span>Performance</span></div>
   <div class="sp-s">Loading charts…</div>
 </div>
-<header><h1>B412EPI <span>Performance</span></h1><div class="ver">v0.07 · test build · CCG</div></header>
+<header><h1>B412 <span>Performance</span></h1><div class="ver">v0.08 · test build</div></header>
 <main>
 
+<div id="stick">
 <section class="card" id="cond">
   <h2>Conditions <span id="condSum"></span></h2>
   <div id="clampNote" role="status" aria-live="polite"></div>
   <div class="grid6">
     <label class="f">Elevation (ft)<input id="elev" type="number" inputmode="decimal" min="-2000" max="20000" value="1000"></label>
+    <label class="f">Relative wind (°)<input id="rwind" type="number" inputmode="decimal" min="0" max="359" value="0"></label>
+    <label class="f">Wind speed (kt)<input id="wspd" type="number" inputmode="decimal" min="0" max="99" value="0"></label>
+    <label class="f">OAT (°C)<input id="oat" type="number" inputmode="decimal" min="-40" max="51.7" step="0.1" value="15"></label>
     <label class="f">Altimeter (inHg)<input id="alt" type="number" inputmode="decimal" step="0.01" min="27" max="31.5" value="29.92"></label>
-    <label class="f">OAT (°C)<input id="oat" type="number" inputmode="decimal" min="-40" max="52" step="0.1" value="15"></label>
-    <label class="f">Gross weight (lb)<input id="gw" type="number" inputmode="decimal" min="6400" max="12200" value="11000"></label>
-    <label class="f">Rel. wind (°)<input id="rwind" type="number" inputmode="decimal" min="0" max="359" value="0"></label>
-    <label class="f">Wind (kt)<input id="wspd" type="number" inputmode="decimal" min="0" max="60" value="0"></label>
+    <label class="f">METAR station<input id="wxsta" type="text" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="Nearest"></label>
+    <div class="f wxbtnwrap"><span>&nbsp;</span><button id="wxbtn" type="button"><b>Current</b><small id="wxage">METAR</small></button></div>
+    <div id="windpic" title="Relative wind"></div>
   </div>
-  <div class="cfgrow">
-    <label class="f">Cabin configuration<select id="cfg"><option value="std">Standard (10+ pax)</option><option value="p9">9 pax or less (FMS-35.5)</option><option value="ext">External load (hook)</option></select></label>
+  <div id="wxline"></div>
+</section>
+<section class="card" id="acft">
+  <h2>Aircraft configuration</h2>
+  <div class="grid6">
+    <label class="f">Gross weight (Lbs)<input id="gw" type="number" inputmode="decimal" min="0" max="12200" value="11000"></label>
     <label class="f">Fuel type<select id="fuel"><option value="a">Jet A / A-1</option><option value="b">Jet B</option></select></label>
-    <label class="f">Heater<select id="heat"><option value="off">OFF</option><option value="on">Standard ON</option><option value="win">Winterization ON</option></select></label>
-    <label class="f">Extended Hover Perf kit (FMS-80.5)<select id="ehp"><option value="yes">Show EHP rows</option><option value="no">Hide EHP rows</option></select></label>
+    <div class="f">Heater (FMS-1.5)<button type="button" class="sw" data-for="heater" aria-label="Heater"><span class="t">OFF</span><span class="k"></span></button><select id="heater" hidden><option value="off">OFF</option><option value="on">ON</option></select></div>
+    <div class="f">Air conditioner<button type="button" class="sw" data-for="ac" aria-label="Air conditioner"><span class="t">OFF</span><span class="k"></span></button><select id="ac" hidden><option value="off">OFF</option><option value="on">ON</option></select></div>
+    <div class="f">≤ 9 pax (FMS-35.5)<button type="button" class="sw" data-for="pax9" aria-label="Nine or fewer passenger seats"><span class="t">OFF</span><span class="k"></span></button><select id="pax9" hidden><option value="off">OFF</option><option value="on">ON</option></select></div>
+    <div class="f">Hook load (FMS-9.5)<button type="button" class="sw" data-for="hook" aria-label="External load on cargo hook"><span class="t">OFF</span><span class="k"></span></button><select id="hook" hidden><option value="off">OFF</option><option value="on">ON</option></select></div>
   </div>
 </section>
+</div>
 
 <section class="card">
   <h2>Atmosphere &amp; wind</h2>
-  <div class="res atmo" id="atmo"></div>
+  <div class="res3" id="atmo"></div>
 </section>
 
 <div class="tabs" id="tabs">
   <button class="on" data-t="limits">Limitations</button>
-  <button data-t="cata">CAT-A</button>
+  <button data-t="helipad">CAT-A Helipad</button>
+  <button data-t="runway">CAT-A Runway</button>
+  <button data-t="stay">Stay Up Weight</button>
   <button data-t="hover">Hover</button>
   <button data-t="roc">ROC</button>
   <button data-t="pwr">Power Check</button>
-  <button class="todo" data-t="todo">Still to build</button>
 </div>
 
 <section class="card" id="t-limits">
   <h2>Limitations — BHT-412-FM-5 Section 1</h2>
   <div class="res" id="limTiles"></div>
   <div class="fuelbox" id="limFuels"></div>
+  <div class="fuelbox" id="limHV"></div>
 </section>
 
 <section class="card" id="t-hover" style="display:none">
   <h2>Hover ceiling — maximum gross weight</h2>
+  <div class="res" id="hovCards"></div>
+  <div class="res" id="mtCard" style="margin-top:10px"></div>
+  <div class="rlab" style="margin-top:12px">ONE ENGINE INOPERATIVE — BHT-412-MD-5 FIG 4-3 (MANUFACTURER'S DATA)</div>
+  <div class="res" id="oeiCards"></div>
+  <h3 class="sub">All hover charts — 100% and 103% N<sub>R</sub></h3>
   <table class="hv" id="hovT"></table>
   <div class="msgs" id="hovMsgs"></div>
   <div id="wrapH" style="margin-top:4px"></div>
@@ -116,18 +139,41 @@
   <div class="pair" id="wrapW"></div>
 </section>
 
-<section class="card" id="t-cata" style="display:none">
-  <h2>Category A — BHT-412-FMS-62.5 (and FMS-74.5 Part D above 11,900 lb)</h2>
-  <div class="cfgrow">
-    <label class="f">Profile<select id="caProf"><option value="A">Part A — Side step (elevated heliport)</option><option value="B">Part B — Backup (surface / elevated)</option><option value="C">Part C — Runway</option><option value="D">Part D — Offset backup</option></select></label>
+<section class="card" id="t-helipad" style="display:none">
+  <h2>CAT-A Helipad — BHT-412-FMS-62.5</h2>
+  <div class="grid6" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+    <label class="f">Profile<select id="caProf"><option value="A">Part A — Side step (elevated)</option><option value="B">Part B — Backup</option><option value="D">Part D — Offset backup</option></select></label>
     <label class="f caA">Takeoff surface height (ft)<input id="caSurf" type="number" inputmode="decimal" min="0" max="2000" value="105"></label>
-    <label class="f caA">Allowable drop down (ft, blank = 90+)<input id="caDrop" type="number" inputmode="decimal" min="0" max="200" placeholder="90 or more"></label>
-    <label class="f caA">Pad side at TDP/LDP<select id="caSide"><option value="R">Pad on right (RHS seat)</option><option value="L">Pad on left (LHS seat, 2 pilots)</option></select></label>
+    <label class="f caA">Allowable drop down (ft)<input id="caDrop" type="number" inputmode="decimal" min="0" max="200" placeholder="90 or more"></label>
+    <label class="f caA">Pad side at TDP/LDP<select id="caSide"><option value="R">Pad on right (RHS seat)</option><option value="L">Pad on left (LHS, 2 pilots)</option></select></label>
+    <label class="f caB">Backup obstacle height (ft)<input id="caBkh" type="number" inputmode="decimal" min="0" max="300" placeholder="none"></label>
+    <label class="f caB">Backup obstacle distance (ft)<input id="caBkd" type="number" inputmode="decimal" min="0" max="1000" placeholder="from takeoff point"></label>
+    <label class="f caB">Flyaway obstacle height (ft)<input id="caFly" type="number" inputmode="decimal" min="0" max="500" value="0"></label>
   </div>
-  <div id="caRes" style="margin-top:12px"></div>
-  <div class="msgs" id="caMsgs"></div>
-  <div class="pair" id="caCharts"></div>
-  <p class="legend">OEI performance, 103% N<sub>R</sub> takeoff segments, heater off, all doors closed. Wind: ±90° of takeoff direction, crosswind ≤ 10 kt, headwind credit (50%) only within ±45°.</p>
+  <div class="res" id="heli" style="margin-top:12px"></div>
+  <div class="msgs" id="heliMsgs"></div>
+  <div id="heliProf"></div>
+  <div class="pair" id="heliCharts"></div>
+  <h2 style="margin-top:22px">Performance Class 2 — helideck · BHT-412-MD-5 (manufacturer's data, offshore configuration)</h2>
+  <div class="res" id="pc2Cards"></div>
+  <p class="legend">ICAO Annex 6 Part III performance information — operational approval is the operator's responsibility. The WAT chart assures 15 ft deck-edge clearance, 100 ft/min to 200 ft and 150 ft/min to 1,000 ft OEI, and AEO hover OGE. Headwind credit uses 50% of the headwind component; no credit at 20 °C and warmer. 30-sec OEI, 103% N<sub>R</sub>, heater OFF.</p>
+  <div class="pair" id="pc2Charts"></div>
+  <p class="legend">OEI performance with 103% N<sub>R</sub> and 30-sec / 2-min OEI power for the takeoff segments, heater and air conditioner OFF, all doors closed. Wind within ±90° of the takeoff direction, crosswind ≤ 10 kt, headwind credit 50% only within ±45°.</p>
+</section>
+
+<section class="card" id="t-runway" style="display:none">
+  <h2>CAT-A Runway — BHT-412-FMS-62.5 Part C (FMS-74.5 Part D above 11,900 lb)</h2>
+  <div class="res" id="rwy"></div>
+  <div class="msgs" id="rwyMsgs"></div>
+  <div id="rwyProf"></div>
+  <div class="pair" id="rwyCharts"></div>
+  <p class="legend">OEI performance, 103% N<sub>R</sub>, heater and air conditioner OFF, all doors closed. Wind within ±90°, crosswind ≤ 10 kt, headwind credit 50% only within ±45°.</p>
+</section>
+
+<section class="card" id="t-stay" style="display:none">
+  <h2>Stay-up weight — OEI at cruise</h2>
+  <div class="grid6"><label class="f">Cruise altitude (ft ASL)<input id="calt" type="number" inputmode="decimal" min="-2000" max="20000" step="100" placeholder="elevation"></label><label class="f">Cruise OAT (°C)<input id="coat" type="number" inputmode="decimal" min="-40" max="51.7" step="0.1" placeholder="auto"></label></div>
+  <div id="stayBody" style="margin-top:10px"></div>
 </section>
 
 <section class="card" id="t-roc" style="display:none">
@@ -159,16 +205,9 @@
   <p class="legend">PA and OAT come from Conditions. Values are computed from the ISA standard atmosphere; the Bell chart matches it within ~10 ft (Bell example: −15 °C, 7,000 ft → 5,000 ft, 1/√σ 1.078).</p>
 </section>
 
-<section class="card" id="t-todo" style="display:none">
-  <h2>Still to build</h2>
-  <ul class="todo-list">
-    <li>CAT-A — FMS-90.x elevated helipad minimum surface area; single-engine rate of climb (information only)</li>
-    <li>Takeoff distance, single-engine landing distance</li>
-    <li>Critical relative wind azimuths (FM-5 Section 4); EHP max continuous mast torque below 60 KIAS (FMS-80.5 Fig 1A-8); height-velocity diagram</li>
-  </ul>
-</section>
 
-<div class="foot">Test build for evaluation only — not approved for operational use. Always verify against the current BHT-412-FM-5 and applicable supplements (CCG 412EPI library).<br>Chart curves are read directly from the vector drawings in the Bell PDF manuals (no hand digitizing).</div>
+
+<div class="foot">Test build for evaluation only — not approved for operational use. Always verify against the current BHT-412-FM-5 and applicable supplements (CCG 412EPI library).<br>Chart curves are read from the vector drawings in the Bell PDFs; the power assurance figure is a scan. MD-5 data (OEI hover, PC2, backup obstacle) is manufacturer's data, not FAA approved. Charts © Bell Textron, reproduced from the BHT-412 flight manual, supplements and MD-5.</div>
 </main>
 <div class="zoom" id="zoom"><button class="x" id="zx">✕ Close</button><div id="zc"></div><div class="zh">Tap the chart or ✕ to return</div></div>
 
@@ -178,6 +217,15 @@ const IMG=Object.assign(/*IMGS*/,/*IMGSA*/,/*IMGSR*/);
 const RC=/*DATAR*/;
 const CA=/*DATAA*/;
 const PW=/*DATAP*/;
+const SE=/*DATASE*/;
+const OEI=/*DATAOEI*/;
+const MT=/*DATAMT*/;
+const PC2=/*DATAPC2*/;
+Object.assign(IMG,/*IMGPC2*/);
+Object.assign(IMG,/*IMGMT*/);
+Object.assign(IMG,/*IMGOEI*/);
+const PF=/*DATAPF*/;
+Object.assign(IMG,/*IMGSE*/,/*IMGPF*/);
 Object.assign(IMG,/*IMGSP*/);
 </script>
 <script>
@@ -324,15 +372,18 @@ function clampField(e){const v=parseFloat(e.value);if(!fin(v))return;const lo=pa
   let w=v; if(e.id==='rwind')w=((Math.round(v)%360)+360)%360; else{if(fin(lo)&&w<lo)w=lo;if(fin(hi)&&w>hi)w=hi;}
   if(w!==v){e.value=w;e.classList.add('clamped');setTimeout(()=>e.classList.remove('clamped'),1200);
     const name=(e.closest('label')?.firstChild?.textContent||e.id).trim();
-    const n=$('clampNote');n.textContent=`${name}: ${v} changed to ${w} (${w<v?'maximum':'minimum'} allowed).`;n.classList.add('on');
+    const why=e.id==='rwind'?'relative wind is 0–359°':(w<v?'maximum allowed':'minimum allowed');const n=$('clampNote');n.textContent=`${name}: ${v} changed to ${w} (${why}).`;n.classList.add('on');
     clearTimeout(clampField.t);clampField.t=setTimeout(()=>n.classList.remove('on'),6000);calc();}}
 
 function calc(){
   const elev=val('elev'),alt=val('alt'),oat=val('oat'),gw=val('gw'),rw=val('rwind'),ws=val('wspd');
-  const cfg=$('cfg').value,heat=$('heat').value,ehp=$('ehp').value==='yes';
+  document.querySelectorAll('.sw').forEach(b=>{const on=$(b.dataset.for).value==='on'; b.classList.toggle('on',on); b.querySelector('.t').textContent=on?'ON':'OFF'; b.setAttribute('aria-pressed',on);});
+  const hook=$('hook').value==='on', p9=$('pax9').value==='on';
+  const cfg=hook?'ext':(p9?'p9':'std'), heat=$('heater').value==='on'?'win':'off', acOn=$('ac').value==='on', ehp=true;
+  windPicUpdate(rw,ws);
   const pa=B.pressureAltitude(elev,alt), da=B.densityAltitude(pa,oat), isa=15-1.98*pa/1000;
   const hw=ws*Math.cos(rw*Math.PI/180), xw=ws*Math.sin(rw*Math.PI/180);
-  $('condSum').textContent=`PA ${f0(pa)} ft · DA ${f0(da)} ft · ${oat} °C · ${f0(gw)} lb`;
+  $('condSum').textContent=`PA ${f0(pa)} ft · DA ${f0(da)} ft`;
   const rwn=((rw%360)+360)%360, inCred=rwn<=45||rwn>=315, fhw=inCred&&hw>0?0.5*hw:0;
   $('atmo').innerHTML=`<div class="r"><div class="k">Pressure alt</div><div class="v">${f0(pa)} ft</div><div class="s">Altimeter ${alt.toFixed(2)} inHg</div></div>
    <div class="r"><div class="k">Density alt</div><div class="v">${f0(da)} ft</div><div class="s">rule of thumb (120 ft/°C) ${f0(pa+120*(oat-isa))} ft</div></div>
@@ -354,6 +405,7 @@ function calc(){
       if(r.status!=='ok'){html+=`<td class="c bad${SEL===id?' sel':''}" data-id="${id}"><b style="font-size:14px">${STAT[r.status]}</b></td>`;continue;}
       let g=r.gw, gA=r.gwA;
       if(sel.sub&&r.hd>sel.sub[0]){g-=sel.sub[1];if(fin(gA))gA-=sel.sub[1];msgs.add(`Winterization heater: ${sel.sub[1]} lb subtracted above ${f0(sel.sub[0])} ft Hd (FMS-74.5 Part C note).`);}
+      if(acOn){g-=150;if(fin(gA))gA-=150;}
       const mx=SRC_MAX[nr]; const capd=g>=mx||r.atEdge; g=Math.min(floor10(g),mx); if(fin(gA))gA=Math.min(floor10(gA),mx);
       r.out=g; r.outA=gA;
       const okk=gw<=g; let sub='';
@@ -364,6 +416,22 @@ function calc(){
     html+='</tr>';
   }
   $('hovT').innerHTML=html;
+  if(acOn)msgs.add('Air conditioner ON: 150 lb subtracted from every hover weight (Air Comm 412AC-104: add 150 lb to gross weight before entering the hover charts).');
+  { // cards like the aircraft's HOVER PERFORMANCE page: 100% N_R (FM-5 / FMS-80.5) as the main figure, 103% N_R (FMS-74.5) below
+    const cardH=(lab,ge,pw,sub0)=>{const r=res[`${ge}_${pw}_100`], q=res[`${ge}_${pw}_103`];
+      const t103=q&&q.status==='ok'&&fin(q.out)?`103% N<sub>R</sub>: <b>${f0(q.out)} Lbs</b> (${q.C.src} Fig ${q.C.fig})`:'103% N<sub>R</sub>: — ';
+      if(!r||r.status!=='ok'||!fin(r.out))return `<div class="r bad"><div class="k">${lab}</div><div class="v">– – – –</div><div class="s">100% chart: ${r?STAT[r.status]||'outside the chart':'no chart'}<br>${t103}</div></div>`;
+      const ok=gw<=r.out, a=fin(r.outA)&&r.outA<r.out?` · Area A ${f0(r.outA)}`:'';
+      return `<div class="r ${ok?'ok':'bad'}"><div class="k">${lab}</div><div class="v">${f0(r.out)} Lbs</div><div class="s">${sub0} · 100% N<sub>R</sub> · ${r.C.src} Fig ${r.C.fig}${a} · ${ok?'+':'−'}${f0(Math.abs(r.out-gw))} Lbs margin<br>${t103}</div></div>`;};
+    $('hovCards').innerHTML=cardH('IGE hover · min spec','ige','top','takeoff power')+cardH('OGE hover · MCP','oge','ehp','EHP kit')+cardH('OGE hover · T/O power','oge','top','takeoff power');
+  }
+  const MTr=calcMT(pa,oat,cfg==='p9'); $('mtCard').innerHTML=MTr.card;
+  let oc='', och='';
+  for(const k of ['oei_2m','oei_30s']){ const o=OEI[k], r=oeiHover(o,pa,oat,Math.max(0,hw));
+    const ok=r.st==='ok', og=Math.min(o.max,floor10(r.res[60].gw+r.dg)), i4=Math.min(o.max,floor10(r.res[4].gw));
+    oc+=`<div class="r ${ok?(gw<=og?'ok':'bad'):'bad'}"><div class="k">OEI hover · ${o.power}</div><div class="v">${ok?f0(og)+' Lbs':'– – – –'}</div><div class="s">${ok?`OGE${r.dg>0?` incl. +${f0(Math.round(r.dg/10)*10)} Lbs for ${Math.round(hw)} kt headwind`:''} · IGE 4 ft ${f0(i4)} Lbs`:(r.st==='hd'?'above 8,000 ft PA (chart limit)':r.st==='oatmax'?'above max OAT':'outside the chart')}</div></div>`;
+    och+=oeiChart(o,r,gw); }
+  $('oeiCards').innerHTML=oc;
   if(gw>11900)msgs.add('Gross weight above 11,900 lb: FMS-74.5 (103% N<sub>R</sub>) applies.');
   if(cfg!=='std')msgs.add(cfg==='p9'?'FMS-35.5 charts: valid for zero wind or wind outside the critical relative wind azimuths.':'FMS-9.5 / FMS-74.5 Part C external-load charts: valid for zero wind or wind outside the critical relative wind azimuths.');
   msgs.add('OGE: Area A = control margins demonstrated in winds from any direction (FM-5 Fig 1-3 limits). Weights above Area A (Area B, shaded) need calm wind or wind outside the critical azimuths.');
@@ -381,7 +449,7 @@ function calc(){
     }
     ch+='</div>';
   }
-  $('wrapH').innerHTML=ch;
+  $('wrapH').innerHTML=`<h3 class="sub">EHP kit — maximum continuous mast torque below 60 KIAS</h3><div class="pair">${MTr.chart}</div><h3 class="sub">One engine inoperative — MD-5 Fig 4-3A (2-min) and 4-3B (30-sec)</h3><div class="pair">${och}</div>`+ch;
   if(calc.jump){const el=$('ch_'+calc.jump);calc.jump=null;if(el)el.scrollIntoView({behavior:'smooth',block:'center'});}
 
   // ---------- WAT ----------
@@ -394,26 +462,153 @@ function calc(){
   }
   $('watRes').innerHTML=wh; $('wrapW').innerHTML=wc;
   $('watMsgs').innerHTML='<div class="msg">Allowable weights from the WAT chart may exceed hover capability — check the hover ceiling.</div>';
-  try{ calcROC({pa,oat,gw,heat}); }catch(e){ $('rocRes').innerHTML='<div class="msg">ROC error: '+e.message+'</div>'; console.error(e); }
-  try{ calcLimits({pa,oat}); }catch(e){ $('limTiles').innerHTML='<div class="msg">Limitations error: '+e.message+'</div>'; console.error(e); }
+  try{ calcROC({pa,oat,gw,heat,acOn}); }catch(e){ $('rocRes').innerHTML='<div class="msg">ROC error: '+e.message+'</div>'; console.error(e); }
+  try{ calcLimits({pa,oat}); calcHV(); }catch(e){ $('limTiles').innerHTML='<div class="msg">Limitations error: '+e.message+'</div>'; console.error(e); }
   try{ calcPWR({pa,oat,da}); }catch(e){ $('pwrRes').innerHTML='<div class="msg">Power check error: '+e.message+'</div>'; console.error(e); }
-  try{ calcCatA({pa,oat,gw,rw,ws,da}); }catch(e){ $('caRes').innerHTML='<div class="msg">CAT-A error: '+e.message+'</div>'; console.error(e); }
+  try{ calcStay({elev,alt,oat,gw}); }catch(e){ $('stayBody').innerHTML='<div class="msg">Stay-up error: '+e.message+'</div>'; console.error(e); }
+  try{ calcPC2({pa,oat,gw,da,hw}); }catch(e){ $('pc2Cards').innerHTML='<div class="msg">PC2 error: '+e.message+'</div>'; console.error(e); }
+  try{ calcCatA({pa,oat,gw,rw,ws,da,heat,acOn}); }catch(e){ $('heli').innerHTML='<div class="msg">CAT-A error: '+e.message+'</div>'; console.error(e); }
+  document.querySelectorAll('.r .v').forEach(e=>{ if(/ Lbs$/.test(e.innerHTML)){ e.innerHTML=e.innerHTML.replace(/ Lbs$/,'&nbsp;<span class="u">Lbs</span>'); e.classList.add('wt'); } });
   bindZoom();
 }
 /*CATAUI*/
 /*ROCUI*/
 /*PWRUI*/
 /*LIMUI*/
+/*STAYUI*/
+/*OEIUI*/
+/*PC2UI*/
 $('hovT').addEventListener('pointerdown',e=>{const td=e.target.closest('td.c');if(td){SEL=td.dataset.id;calc.jump=SEL;setTimeout(calc,0);}});
-function bindZoom(){document.querySelectorAll('.chart').forEach(c=>c.onclick=()=>{$('zc').innerHTML=c.querySelector('svg').outerHTML.replace(/ah(\d+)/g,'zah$1');$('zoom').classList.add('on');});}
+function bindZoom(){document.querySelectorAll('.chart').forEach(c=>c.onclick=()=>{const sv=c.querySelector('svg');if(!sv)return;$('zc').innerHTML=sv.outerHTML.replace(/ah(\d+)/g,'zah$1');$('zoom').classList.add('on');});}
 function zClose(){$('zoom').classList.remove('on');}
-$('zoom').addEventListener('click',zClose);document.addEventListener('keydown',e=>{if(e.key==='Escape')zClose()});
-document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{
+$('zoom').addEventListener('click',zClose);$('zx').addEventListener('click',zClose);document.addEventListener('keydown',e=>{if(e.key==='Escape')zClose()});
+
+// ---------- relative wind pictogram (FM-5 Fig 4-3 critical relative wind azimuths, OGE) ----------
+const WINDPIC={"ring": "<path transform=\"matrix(1,0,0,-1,38.6958,1)\" d=\"M0 0C-20.786 0-37.696-16.951-37.696-37.787-37.696-58.623-20.786-75.574 0-75.574 20.786-75.574 37.696-58.623 37.696-37.787 37.696-16.951 20.786 0 0 0M0-76.574C-21.337-76.574-38.696-59.175-38.696-37.787-38.696-16.399-21.337 1 0 1 21.337 1 38.696-16.399 38.696-37.787 38.696-59.175 21.337-76.574 0-76.574\" />", "arrow": "<path transform=\"matrix(1,0,0,-1,0,77.5742)\" d=\"M36.512 61.145H40.729V77.573H36.512Z\" /><path transform=\"matrix(1,0,0,-1,38.625,23.082005)\" d=\"M0 0 5.879 10.241H-5.929\"  fill-rule=\"evenodd\"/>", "heli": "<path transform=\"matrix(1,0,0,-1,38.6016,55.021505)\" d=\"M0 0H.686L1.485 10.71C1.488 10.76 1.5 10.809 1.518 10.855L2.904 14.394V24.48L.889 27.372H-.205L-2.172 24.531V14.394L-.785 10.855C-.767 10.809-.755 10.759-.752 10.708ZM1.15-1H-.466C-.729-1-.947-.797-.965-.535L-1.744 10.562-3.138 14.116C-3.161 14.175-3.172 14.236-3.172 14.299V24.687C-3.172 24.789-3.141 24.889-3.083 24.973L-.877 28.157C-.784 28.292-.63 28.372-.466 28.372H1.15C1.314 28.372 1.467 28.292 1.561 28.158L3.814 24.924C3.873 24.84 3.904 24.74 3.904 24.638V14.299C3.904 14.236 3.893 14.175 3.87 14.116L2.477 10.561 1.649-.537C1.629-.798 1.412-1 1.15-1\" /><path transform=\"matrix(1,0,0,-1,35.1538,33.166006)\" d=\"M0 0H.974L-5.638 6.442-6.108 5.972ZM3.373-3.058C3.247-3.058 3.121-3.01 3.024-2.915L1.062-1H-.204C-.334-1-.46-.949-.553-.857L-7.168 5.61C-7.264 5.704-7.318 5.831-7.319 5.965-7.32 6.099-7.267 6.227-7.172 6.321L-5.996 7.498C-5.802 7.691-5.489 7.694-5.293 7.503L4.212-1.759C4.312-1.855 4.366-1.989 4.363-2.127 4.36-2.266 4.3-2.396 4.197-2.489L3.707-2.93C3.612-3.015 3.493-3.058 3.373-3.058\" /><path transform=\"matrix(1,0,0,-1,29.0464,44.2549)\" d=\"M0 0 .468-.469 7.044 5.972H6.107ZM.465-1.672C.337-1.672 .209-1.623 .111-1.525L-1.065-.35C-1.159-.255-1.212-.127-1.211 .007-1.21 .141-1.157 .268-1.061 .361L5.554 6.829C5.647 6.921 5.773 6.972 5.904 6.972H7.17L9.131 8.888C9.327 9.079 9.641 9.079 9.834 8.883L10.274 8.441C10.369 8.348 10.421 8.219 10.42 8.086 10.419 7.952 10.366 7.825 10.27 7.731L.815-1.529C.717-1.624 .591-1.672 .465-1.672\" /><path transform=\"matrix(1,0,0,-1,41.8447,38.2344)\" d=\"M0 0 6.626-6.489 7.096-6.02 .986 0ZM6.63-7.692C6.504-7.692 6.378-7.645 6.281-7.55L-3.176 1.711C-3.272 1.805-3.326 1.932-3.327 2.065-3.328 2.198-3.275 2.327-3.181 2.421L-2.741 2.862C-2.548 3.059-2.234 3.062-2.038 2.867L-.124 1H1.191C1.323 1 1.449 .948 1.542 .856L8.156-5.66C8.251-5.754 8.305-5.882 8.305-6.015 8.306-6.147 8.253-6.275 8.159-6.37L6.984-7.546C6.887-7.644 6.758-7.692 6.63-7.692\" /><path transform=\"matrix(1,0,0,-1,41.8945,33.166006)\" d=\"M0 0H.937L7.038 6.012 6.584 6.448ZM-2.437-3.058C-2.564-3.058-2.693-3.009-2.79-2.911L-3.23-2.471C-3.325-2.376-3.377-2.248-3.376-2.114-3.375-1.981-3.322-1.854-3.226-1.76L6.231 7.502C6.423 7.689 6.732 7.692 6.927 7.505L8.102 6.377C8.199 6.284 8.254 6.155 8.255 6.02 8.256 5.885 8.203 5.755 8.106 5.66L1.493-.856C1.399-.948 1.273-1 1.142-1H-.126L-2.087-2.915C-2.185-3.01-2.311-3.058-2.437-3.058\" />"};
+function windPic(rel,col,html){
+  $('windpic').classList.toggle('nogo',col==='nogo');
+  $('windpic').innerHTML=`<div>${html}</div><svg viewBox="0 0 77.39 77.57" xmlns="http://www.w3.org/2000/svg"><g fill="var(--wp-ring)">${WINDPIC.ring}</g><g fill="var(--wp-heli)">${WINDPIC.heli}</g><g fill="var(--wp-arrow)" transform="rotate(${rel} 38.696 38.787)">${WINDPIC.arrow}</g></svg>`;
+}
+function windDesc(r){ if(r<=10||r>=350)return 'on the nose'; if(r>=170&&r<=190)return 'from behind';
+  const side=r<180?'right':'left', a=r<180?r:360-r; return a<80?`from front ${side}`:(a<=100?`from the ${side}`:`from behind ${side}`); }
+function windPicUpdate(rw,ws){
+  const r=((Math.round(rw)%360)+360)%360;
+  if(!(ws>0)){windPic(r,'',`<b>calm</b><br>no critical azimuth`);return;}
+  let txt='outside the critical azimuths', col='';
+  if(r>=30&&r<=95){txt='<span class="bad">OGE pedal critical azimuth</span> (Fig 4-3 note 1)';col='nogo';}
+  else if(r>=180&&r<=270){txt='<span class="bad">OGE aft cyclic critical azimuth</span> (Fig 4-3 note 2)';col='nogo';}
+  windPic(r,col,`<b>${windDesc(r)} · ${Math.round(ws)} kt</b><br>${txt}`);
+}
+const fmtN=(v,d=0)=>fin(v)?v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+// ---------- METAR "Current" ----------
+const WX_FIELDS=['elev','alt','oat','wspd'];
+const IEM='https://mesonet.agron.iastate.edu';
+const CA_NETS=['AB','BC','MB','NB','NF','NS','NT','NU','ON','PE','QC','SK','YT'].map(p=>`CA_${p}_ASOS`);
+let WX=null;
+const nm=(a1,o1,a2,o2)=>{const r=Math.PI/180,dl=(a2-a1)*r,dO=(o2-o1)*r;const h=Math.sin(dl/2)**2+Math.cos(a1*r)*Math.cos(a2*r)*Math.sin(dO/2)**2;return 3440.065*2*Math.asin(Math.sqrt(h));};
+const brg=(a1,o1,a2,o2)=>{const r=Math.PI/180;const y=Math.sin((o2-o1)*r)*Math.cos(a2*r),x=Math.cos(a1*r)*Math.sin(a2*r)-Math.sin(a1*r)*Math.cos(a2*r)*Math.cos((o2-o1)*r);return (Math.atan2(y,x)/r+360)%360;};
+const cmp=d=>['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];
+const getJSON=async(u,ms=12000)=>{const c=new AbortController();const t=setTimeout(()=>c.abort(),ms);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}finally{clearTimeout(t);}};
+const getPos=()=>new Promise(res=>{if(!navigator.geolocation)return res(null);navigator.geolocation.getCurrentPosition(p=>res(p.coords),()=>res(null),{enableHighAccuracy:true,timeout:10000,maximumAge:120000});});
+function parseMetar(row){
+  const raw=row.raw||'';
+  let alt=null,oat=null;
+  const a=raw.match(/\sA(\d{4})(?=\s|$)/); if(a) alt=+a[1]/100;
+  else { const q=raw.match(/\sQ(\d{4})(?=\s|$)/); if(q) alt=Math.round(+q[1]/33.8639*100)/100; else if(row.alti!=null) alt=row.alti; }
+  const tg=raw.match(/\sT([01])(\d{3})([01])\d{3}(?=\s|$)/);
+  const tt=raw.match(/\s(M?\d{2})\/(M?\d{2})?(?=\s|$)/);
+  if(tg) oat=(tg[1]==='1'?-1:1)*(+tg[2])/10;
+  else if(tt) oat=(tt[1][0]==='M'?-1:1)*(+tt[1].replace('M',''));
+  else if(row.tmpf!=null) oat=Math.round((row.tmpf-32)*5/9*10)/10;
+  const w=raw.match(/\s(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT/);
+  const spd=w?+w[2]:(row.sknt!=null?row.sknt:null), gst=w&&w[3]?+w[3]:(row.gust||null), dir=w?w[1]:(row.drct!=null?String(row.drct).padStart(3,'0'):null);
+  return {alt,oat,spd,gst,dir};
+}
+async function stationElev(row){
+  try{const g=await getJSON(`${IEM}/geojson/network/${row.network}.geojson`);const f=g.features.find(f=>(f.id||f.properties.sid)===row.station);return f&&f.properties.elevation!=null?f.properties.elevation*3.28084:null;}catch(e){return null;}
+}
+function wxAge(){
+  const el=$('wxage'); if(!WX){el.textContent='METAR';el.className='';return;}
+  const m=Math.max(0,Math.round((Date.now()-WX.obs)/60000));
+  el.textContent=`${WX.sta} · ${m<120?m+' min':(m/60).toFixed(1)+' h'}`;
+  el.className=m<=60?'g':(m<=120?'a':'r');
+  WX_FIELDS.forEach(k=>$(k).classList.toggle('wx',WX.f[k]!=null&&String(WX.f[k])===$(k).value));
+}
+function wxLine(){
+  const L=$('wxline'); if(!WX){L.classList.remove('on');return;}
+  const m=Math.round((Date.now()-WX.obs)/60000);
+  const loc=WX.dist!=null?` · ${fmtN(WX.dist,0)} NM ${fmtN(WX.brg,0)}° (${cmp(WX.brg)})`:'';
+  const old=m>90?` <span class="err">Observation is ${m<120?m+' min':(m/60).toFixed(1)+' h'} old.</span>`:'';
+  const far=WX.dist!=null&&WX.dist>40?` <span class="err">Nearest reporting station is ${fmtN(WX.dist,0)} NM away.</span>`:'';
+  const wind=WX.dir?` Wind ${WX.dir==='VRB'?'variable':WX.dir+'° true'} ${WX.spd} kt${WX.gst?' gusting '+WX.gst:''} — steady speed entered; set relative wind for your heading.`:'';
+  const el=WX.elevSrc==='gps'?` Elevation from device GPS (±${fmtN(WX.elevAcc*3.28084,0)} ft).`:(WX.elevSrc==='stn'?` Elevation is ${WX.sta}'s field elevation — change it if you're not there.`:' <span class="err">Elevation not available from the station — check the elevation field.</span>');
+  L.innerHTML=`<b>${WX.sta}</b> ${WX.name?WX.name+' ':''}${loc}<br><code>${WX.raw}</code>${old||far||WX.elevSrc==null?'<br>':''}${WX.elevSrc==null?el:''}${old}${far}`;
+  L.classList.add('on');
+}
+async function wxFetch(){
+  const b=$('wxbtn'); if(b.classList.contains('busy'))return;
+  b.classList.add('busy'); $('wxage').textContent='…'; $('wxage').className='';
+  const L=$('wxline');
+  try{
+    const want=$('wxsta').value.trim().toUpperCase();
+    const pos=await getPos();
+    let row=null, dist=null, b2=null;
+    if(want){
+      const j=await getJSON(`${IEM}/api/1/currents.json?station=${encodeURIComponent(want)}`);
+      row=(j.data||[]).find(d=>d.raw)||null;
+      if(!row) throw new Error(`No current METAR found for ${want}.`);
+    } else {
+      if(!pos) throw new Error('Location not available — allow location access, or type a station ID (e.g. CYOW).');
+      const all=(await Promise.all(CA_NETS.map(n=>getJSON(`${IEM}/api/1/currents.json?network=${n}`).then(j=>j.data||[]).catch(()=>[])))).flat();
+      const now=Date.now();
+      const ok=all.filter(d=>d.raw&&d.lat!=null&&d.utc_valid&&(now-Date.parse(d.utc_valid))<3*3600e3&&/\s(A|Q)\d{4}/.test(d.raw)&&/\s(M?\d{2})\//.test(d.raw));
+      if(!ok.length) throw new Error('No reporting station found within reach.');
+      ok.forEach(d=>d._d=nm(pos.latitude,pos.longitude,d.lat,d.lon));
+      ok.sort((a,c)=>a._d-c._d); row=ok[0];
+    }
+    if(pos&&row.lat!=null){ dist=nm(pos.latitude,pos.longitude,row.lat,row.lon); b2=brg(pos.latitude,pos.longitude,row.lat,row.lon); }
+    const P=parseMetar(row);
+    let elev=null, elevSrc=null, elevAcc=null;
+    if(pos&&pos.altitude!=null&&pos.altitudeAccuracy!=null&&pos.altitudeAccuracy<=30){ elev=Math.round(pos.altitude*3.28084/10)*10; elevSrc='gps'; elevAcc=pos.altitudeAccuracy; }
+    else { const e=await stationElev(row); if(e!=null){ elev=Math.round(e); elevSrc='stn'; } }
+    const f={};
+    if(elev!=null){ $('elev').value=elev; f.elev=$('elev').value; }
+    if(P.alt!=null){ $('alt').value=P.alt.toFixed(2); f.alt=$('alt').value; }
+    if(P.oat!=null){ $('oat').value=P.oat; f.oat=$('oat').value; }
+    if(P.spd!=null){ $('wspd').value=P.spd; f.wspd=$('wspd').value; }
+    WX={sta:row.station,name:row.name,raw:row.raw,obs:Date.parse(row.utc_valid),dist,brg:b2,dir:P.dir,spd:P.spd,gst:P.gst,elevSrc,elevAcc,f};
+    try{localStorage.setItem('b412wx',JSON.stringify(WX))}catch(e){}
+    calc(); wxAge(); wxLine();
+  }catch(e){
+    const msg=e.name==='AbortError'?'Weather server did not respond — check the connection.':(e instanceof TypeError?'No connection to the weather server.':e.message);
+    L.innerHTML=`<span class="err">${msg}</span>`; L.classList.add('on'); wxAge();
+  }finally{ b.classList.remove('busy'); }
+}
+$('wxbtn').addEventListener('click',wxFetch);
+document.querySelectorAll('.sw').forEach(b=>b.addEventListener('click',()=>{const sel=$(b.dataset.for); sel.value=sel.value==='on'?'off':'on'; sel.dispatchEvent(new Event('input',{bubbles:true}));}));
+$('wxsta').addEventListener('input',()=>{$('wxsta').value=$('wxsta').value.toUpperCase().replace(/[^A-Z0-9]/g,'');});
+WX_FIELDS.forEach(k=>$(k).addEventListener('input',()=>$(k).classList.remove('wx')));
+setInterval(()=>{wxAge(); if(WX&&$('wxline').classList.contains('on'))wxLine();},30000);
+
+const KEEP=['elev','alt','oat','gw','rwind','wspd','fuel','heater','ac','pax9','hook','wxsta','caProf','caSurf','caDrop','caSide','caBkh','caBkd','caFly','rocDoors','calt','coat','pq1','pm1','pn1','pq2','pm2','pn2','kcas'];
+function save(){try{localStorage.setItem('b412perf',JSON.stringify(KEEP.reduce((o,k)=>($(k)&&(o[k]=$(k).value),o),{})))}catch(e){}}
+try{const st=JSON.parse(localStorage.getItem('b412perf')||'null');if(st)for(const k in st)if($(k))$(k).value=st[k]}catch(e){}
+document.querySelectorAll('input,select').forEach(e=>{e.addEventListener('input',()=>{calc();save();});});
+document.querySelectorAll('input[type=number]').forEach(e=>{e.addEventListener('change',()=>clampField(e)); e.addEventListener('blur',()=>clampField(e));});
+$('rwind').addEventListener('input',()=>{const v=parseFloat($('rwind').value); if(isFinite(v)&&(v>359||v<0)) clampField($('rwind'));});
+document.querySelectorAll('input[type=number]').forEach(e=>{const v=parseFloat(e.value),lo=parseFloat(e.min),hi=parseFloat(e.max); if(isFinite(v)){ if(isFinite(lo)&&v<lo)e.value=lo; if(isFinite(hi)&&v>hi)e.value=hi; }});
+const TABS={limits:['limits','wat'],helipad:['helipad'],runway:['runway'],stay:['stay'],hover:['hover'],roc:['roc'],pwr:['pwr']};
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  const sh={limits:['limits','wat']}, on=sh[b.dataset.t]||[b.dataset.t]; ['limits','wat','hover','cata','roc','pwr','todo'].forEach(t=>$('t-'+t).style.display=on.includes(t)?'':'none');}));
-document.querySelectorAll('input,select').forEach(e=>{e.addEventListener('input',calc);e.addEventListener('change',()=>{if(e.tagName==='INPUT')clampField(e);calc();});});
+  const on=TABS[b.dataset.t]||[]; ['limits','wat','helipad','runway','cata','stay','hover','roc','pwr'].forEach(t=>{const el=$('t-'+t);if(el)el.style.display=on.includes(t)?'':'none';});
+  if(window.onTab)onTab(b.dataset.t);
+  try{localStorage.setItem('b412tab',b.dataset.t)}catch(e){}});
+try{const tb=localStorage.getItem('b412tab');const btn=tb&&document.querySelector(`#tabs button[data-t="${tb}"]`);if(btn)btn.click()}catch(e){}
 const hh=()=>document.documentElement.style.setProperty('--hh',document.querySelector('header').offsetHeight+'px');hh();addEventListener('resize',hh);
 calc();
+try{WX=JSON.parse(localStorage.getItem('b412wx')||'null');}catch(e){WX=null}
+if(WX&&Date.now()-WX.obs>12*3600e3){WX=null;try{localStorage.removeItem('b412wx')}catch(e){}}
+wxAge(); if(WX) wxLine();
 // splash: show for at least 2 s from start-up, and until the app has loaded
 (function(){const sp=document.getElementById('splash'); if(!sp)return;
   const go=()=>{const wait=Math.max(0,2000-performance.now()); setTimeout(()=>{sp.classList.add('out');setTimeout(()=>sp.remove(),600);},wait);};

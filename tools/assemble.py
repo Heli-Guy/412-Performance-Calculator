@@ -5,6 +5,6 @@ t=(s.replace('/*SPLASH*/',open(W+'splash_wide.b64').read()).replace('/*CSS*/',op
    .replace('/*DATAA*/',open(W+'catA.json').read()).replace('/*CATAENGINE*/',open(W+'catA_engine.js').read())
    .replace('/*CATAUI*/',open(W+'catA_ui.js').read()).replace('/*ROCUI*/',open(W+'roc_ui.js').read())
    .replace('/*IMGSR*/',open(W+'roc_img.json').read()).replace('/*DATAR*/',open(W+'roc.json').read())
-   .replace('/*DATAP*/',open(W+'pwr.json').read()).replace('/*IMGSP*/',open(W+'pwr_img.json').read()).replace('/*PWRUI*/',open(W+'pwr_ui.js').read()).replace('/*LIMUI*/',open(W+'lim_ui.js').read()))
+   .replace('/*DATAP*/',open(W+'pwr.json').read()).replace('/*IMGSP*/',open(W+'pwr_img.json').read()).replace('/*DATASE*/',open(W+'se.json').read()).replace('/*DATAPF*/',open(W+'prof.json').read()).replace('/*IMGSE*/',open(W+'se_img.json').read()).replace('/*IMGPF*/',open(W+'prof_img.json').read()).replace('/*STAYUI*/',open(W+'stay_ui.js').read()).replace('/*DATAOEI*/',open(W+'oei.json').read()).replace('/*IMGOEI*/',open(W+'oei_img.json').read()).replace('/*OEIUI*/',open(W+'oei_ui.js').read()).replace('/*DATAMT*/',open(W+'mt.json').read()).replace('/*IMGMT*/',open(W+'mt_img.json').read()).replace('/*DATAPC2*/',open(W+'pc2.json').read()).replace('/*IMGPC2*/',open(W+'pc2_img.json').read()).replace('/*PC2UI*/',open(W+'pc2_ui.js').read()).replace('/*PWRUI*/',open(W+'pwr_ui.js').read()).replace('/*LIMUI*/',open(W+'lim_ui.js').read()))
 open(W+'index.html','w').write(t)
 import os; print(os.path.getsize(W+'index.html')//1024,'KB')
