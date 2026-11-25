@@ -6,7 +6,10 @@ Web-based performance calculator for the CCG Bell 412EPI fleet, built from the C
 
 Open `index.html` in a browser (or via GitHub Pages). Single self-contained file, works offline.
 
-## Current version: v0.11
+## Current version: v0.12
+
+### v0.12
+- CAT-A Helipad Part A: pad side option renamed "Pad on left (Slinging)" — the left seat is used for slinging, not two-pilot operations.
 
 ### v0.11
 - Fix: tapping a chart to enlarge it showed only the calculation lines — the chart image was being corrupted when the arrow markers were renamed for the zoom view.
