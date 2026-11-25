@@ -33,29 +33,29 @@ const PWR=(function(){
 function calcPWR(ctx){
   const {pa,oat,da}=ctx, fin=Number.isFinite;
   const E=[1,2].map(n=>({n,tq:val('pq'+n),mgt:val('pm'+n),ng:val('pn'+n)}));
-  const rows=[], msgs=new Set(), COL=['#d0021b','#0a6ad1'];
-  const R={mgt:[],ng:[]};
+  const msgs=[], COL=['#14883e','#0a6ad1'], R={mgt:[],ng:[]}, cards=[];
+  const fm=(v,d,u)=>fin(v)?(v>=0?'+':'−')+Math.abs(v).toFixed(d)+u:'—';
+  const card=(k,v,s,cls)=>`<div class="r ${cls}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+  let anyBad=false;
   for(const e of E){
-    if(!fin(e.tq)){rows.push(`<tr><td class="l">Engine ${e.n}</td><td class="n" colspan="7">enter test torque</td></tr>`);continue;}
+    const c=COL[e.n-1];
+    if(!fin(e.tq)){cards.push(`<div class="paceng" style="border-color:${c}"><div class="rlab" style="color:${c}">ENGINE ${e.n} — enter test torque</div></div>`);continue;}
     const rm=PWR.check(PW.pwr_mgt,pa,oat,e.tq), rn=PWR.check(PW.pwr_ng,pa,oat,e.tq);
     R.mgt.push([e,rm]); R.ng.push([e,rn]);
-    [...rm.notes,...rn.notes].forEach(m=>msgs.add(m));
-    if(e.tq>66.2)msgs.add(`Engine ${e.n}: test torque ${e.tq}% exceeds the 66.2% check limit.`);
-    if(fin(e.mgt)&&e.mgt>825)msgs.add(`Engine ${e.n}: MGT ${e.mgt} °C exceeds the 825 °C check limit.`);
-    if(fin(e.ng)&&e.ng>102)msgs.add(`Engine ${e.n}: Ng ${e.ng}% exceeds the 102.0% check limit.`);
-    if(rm.capped||rn.capped)msgs.add('A reading reached the chart “Do Not Exceed” edge (825 °C / 102% Ng) — that value is used as the limit.');
-    const mm=fin(e.mgt)?rm.v-e.mgt:NaN, nm=fin(e.ng)?rn.v-e.ng:NaN;
-    const okM=!fin(mm)||mm>=0, okN=!fin(nm)||nm>=0, any=fin(mm)||fin(nm);
-    const sg=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(1);
-    rows.push(`<tr class="${okM&&okN?'':'bad'}"><td class="l"><i class="dot" style="background:${COL[e.n-1]}"></i>Engine ${e.n} <span class="s">${e.tq}% Q</span></td>
-      <td class="v">${rm.v.toFixed(0)} °C</td><td class="n">${fin(e.mgt)?e.mgt+' °C':'—'}</td><td class="v ${okM?'':'neg'}">${fin(mm)?sg(mm)+' °C':'—'}</td>
-      <td class="v">${rn.v.toFixed(1)}%</td><td class="n">${fin(e.ng)?e.ng+'%':'—'}</td><td class="v ${okN?'':'neg'}">${fin(nm)?sg(nm)+'%':'—'}</td>
-      <td class="v">${any?(okM&&okN?'PASS':'FAIL'):'—'}</td></tr>`);
-    if(any&&!(okM&&okN))msgs.add(`Engine ${e.n} below specification: published performance may not be achievable. Determine the cause as soon as practical (engine maintenance manual).`);
+    for(const m of [...rm.notes,...rn.notes]) if(!msgs.some(x=>x[1]===m)) msgs.push(['',m]);
+    if(e.tq>66.2)msgs.push(['bad',`Engine ${e.n}: torque above the 66.2% check limit.`]);
+    if(fin(e.mgt)&&e.mgt>825)msgs.push(['bad',`Engine ${e.n}: MGT above the 825 °C check limit.`]);
+    if(fin(e.ng)&&e.ng>102)msgs.push(['bad',`Engine ${e.n}: NG above the 102.0% check limit.`]);
+    if((rm.capped||rn.capped)&&!msgs.some(x=>x[1].startsWith('A reading')))msgs.push(['','A reading reached the chart “Do Not Exceed” edge (825 °C / 102% NG) — that value is used as the limit.']);
+    const mm=fin(e.mgt)?rm.v-e.mgt:NaN, nm=fin(e.ng)?rn.v-e.ng:NaN, both=fin(mm)&&fin(nm), ok=both&&mm>=0&&nm>=0;
+    if((fin(mm)&&mm<0)||(fin(nm)&&nm<0))anyBad=true;
+    cards.push(`<div class="paceng" style="border-color:${c}"><div class="rlab" style="color:${c}">ENGINE ${e.n} — ${both?(ok?'PASS':'BELOW MIN SPEC'):'—'}</div><div class="grid3" style="grid-template-columns:1fr 1fr">`+
+      card('MGT margin',fm(mm,0,' °C'),'max allowable '+rm.v.toFixed(0)+' °C',fin(mm)?(mm>=0?'ok':'bad'):'')+
+      card('NG margin',fm(nm,1,' %'),'max allowable '+rn.v.toFixed(1)+' %',fin(nm)?(nm>=0?'ok':'bad'):'')+'</div></div>');
   }
-  $('pwrRes').innerHTML=`<table class="ca pw"><tr><th></th><th>Max MGT</th><th>Actual</th><th>Margin</th><th>Max Ng</th><th>Actual</th><th>Margin</th><th></th></tr>${rows.join('')}</table>`;
-  msgs.add(`Using PA ${Math.round(pa).toLocaleString('en-US')} ft and OAT ${oat} °C from Conditions. Margin ≥ 0 means the engine meets minimum specification.`);
-  $('pwrMsgs').innerHTML=[...msgs].map(m=>`<div class="msg">${m}</div>`).join('');
+  $('pwrRes').innerHTML=cards.join('');
+  if(anyBad)msgs.push(['bad','Margin below zero: engine below minimum specification — published performance may not be achievable. Determine the cause as soon as practical.']);
+  $('pwrMsgs').innerHTML=msgs.map(m=>`<div class="msg ${m[0]}">${m[1]}</div>`).join('');
   let ch='';
   for(const k of ['mgt','ng']){
     const C=PW['pwr_'+k], P=[], M=[];

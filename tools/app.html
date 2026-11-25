@@ -25,6 +25,11 @@
   table.ca.pw th{font-size:11px;color:var(--mute);text-align:right;font-weight:600;padding:4px 6px} table.ca.pw td.n{text-align:right;font-size:14px;color:inherit} table.ca.pw td.v{font-size:15px} table.ca td.v.neg{color:var(--bad)} i.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px} table.ca .s{display:block;font-weight:400;font-size:11px;color:var(--mute)}
   .eng{display:grid;grid-template-columns:auto repeat(3,1fr);gap:8px 10px;align-items:end;margin-bottom:12px} .eng b{font-size:13px;padding-bottom:9px} .eng .k{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.5px}
   @media (max-width:600px){.wxbtnwrap{grid-column:span 3}}
+  .pair{align-items:start}
+  #pc2Cards{grid-template-columns:repeat(4,minmax(0,1fr))} @media (max-width:700px){#pc2Cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .pacgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .paceng{border:1px solid var(--line);border-radius:10px;padding:10px}
+  @media (max-width:600px){.pacgrid{grid-template-columns:1fr}}
   #hovCards,#oeiCards,#mtCard{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
   .res.atmo{grid-template-columns:repeat(3,1fr)} @media(max-width:560px){.res.atmo{grid-template-columns:repeat(2,1fr)}}
   .fuelrow.warn .ic{background:var(--warn)} .fuelrow{font-size:15px} .fuelrow .why{max-width:46%}
@@ -65,7 +70,7 @@
   <div class="sp-t">B412 <span>Performance</span></div>
   <div class="sp-s">Loading charts…</div>
 </div>
-<header><h1>B412 <span>Performance</span></h1><div class="ver">v0.09 · test build</div></header>
+<header><h1>B412 <span>Performance</span></h1><div class="ver">v0.10 · test build</div></header>
 <main>
 
 <div id="stick">
@@ -118,7 +123,6 @@
   <div class="rlab" style="margin-top:12px">WEIGHT-ALTITUDE-TEMPERATURE — TAKEOFF, LANDING &amp; IGE MANOEUVRES (FIG 1-2)</div>
   <div class="res" id="watRes"></div>
   <div class="fuelbox" id="limFuels"></div>
-  <div class="fuelbox" id="limHV"></div>
 </section>
 
 <section class="card" id="t-hover" style="display:none">
@@ -138,26 +142,26 @@
   <h2>Reference charts</h2>
   <div class="msgs" id="watMsgs"></div>
   <div class="pair" id="wrapW"></div>
-  <div id="limHVchart"></div>
 </section>
 
 <section class="card" id="t-helipad" style="display:none">
   <h2>CAT-A Helipad — BHT-412-FMS-62.5</h2>
-  <div class="grid6" style="grid-template-columns:repeat(4,minmax(0,1fr))">
-    <label class="f">Profile<select id="caProf"><option value="A">Part A — Side step (elevated)</option><option value="B">Part B — Backup</option><option value="D">Part D — Offset backup</option></select></label>
+  <div class="grid6" style="grid-template-columns:minmax(0,1fr)"><label class="f" style="max-width:560px">Profile<select id="caProf"><option value="A">Part A — Side step (elevated heliport)</option><option value="B">Part B — Backup (surface / elevated heliport)</option><option value="D">Part D — Offset backup (surface / elevated heliport)</option></select></label></div>
+  <div class="grid6" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px">
     <label class="f caA">Takeoff surface height (ft)<input id="caSurf" type="number" inputmode="decimal" min="0" max="2000" value="105"></label>
     <label class="f caA">Allowable drop down (ft)<input id="caDrop" type="number" inputmode="decimal" min="0" max="200" placeholder="90 or more"></label>
-    <label class="f caA">Pad side at TDP/LDP<select id="caSide"><option value="R">Pad on right (RHS seat)</option><option value="L">Pad on left (LHS, 2 pilots)</option></select></label>
+    <label class="f caA">Pad side at TDP/LDP<select id="caSide"><option value="R">Pad on right</option><option value="L">Pad on left (2 pilots)</option></select></label>
     <label class="f caB">Backup obstacle height (ft)<input id="caBkh" type="number" inputmode="decimal" min="0" max="300" placeholder="none"></label>
     <label class="f caB">Backup obstacle distance (ft)<input id="caBkd" type="number" inputmode="decimal" min="0" max="1000" placeholder="from takeoff point"></label>
     <label class="f caB">Flyaway obstacle height (ft)<input id="caFly" type="number" inputmode="decimal" min="0" max="500" value="0"></label>
   </div>
   <div class="res" id="heli" style="margin-top:12px"></div>
   <div class="msgs" id="heliMsgs"></div>
+  <div class="rlab" style="margin-top:14px">PERFORMANCE CLASS 2 — HELIDECK · BHT-412-MD-5 (MANUFACTURER'S DATA, OFFSHORE CONFIGURATION)</div>
+  <div class="res" id="pc2Cards"></div>
   <div id="heliProf"></div>
   <div class="pair" id="heliCharts"></div>
-  <h2 style="margin-top:22px">Performance Class 2 — helideck · BHT-412-MD-5 (manufacturer's data, offshore configuration)</h2>
-  <div class="res" id="pc2Cards"></div>
+  <h3 class="sub">Performance Class 2 — helideck charts (BHT-412-MD-5)</h3>
   <p class="legend">ICAO Annex 6 Part III performance information — operational approval is the operator's responsibility. The WAT chart assures 15 ft deck-edge clearance, 100 ft/min to 200 ft and 150 ft/min to 1,000 ft OEI, and AEO hover OGE. Headwind credit uses 50% of the headwind component; no credit at 20 °C and warmer. 30-sec OEI, 103% N<sub>R</sub>, heater OFF.</p>
   <div class="pair" id="pc2Charts"></div>
   <p class="legend">OEI performance with 103% N<sub>R</sub> and 30-sec / 2-min OEI power for the takeoff segments, heater and air conditioner OFF, all doors closed. Wind within ±90° of the takeoff direction, crosswind ≤ 10 kt, headwind credit 50% only within ±45°.</p>
@@ -190,16 +194,22 @@
 </section>
 
 <section class="card" id="t-pwr" style="display:none">
-  <h2>Power assurance check — BHT-412-FM-5 Fig 4-1 (ground / hover)</h2>
-  <div class="eng">
-    <span></span><span class="k">Torque Q (%)</span><span class="k">MGT (°C)</span><span class="k">N<sub>G</sub> (%)</span>
-    <b>Engine 1</b><input id="pq1" type="number" inputmode="decimal" step="0.1" min="40" max="75" value="60"><input id="pm1" type="number" inputmode="decimal" min="300" max="900" placeholder="actual"><input id="pn1" type="number" inputmode="decimal" step="0.1" min="70" max="105" placeholder="actual">
-    <b>Engine 2</b><input id="pq2" type="number" inputmode="decimal" step="0.1" min="40" max="75" value="60"><input id="pm2" type="number" inputmode="decimal" min="300" max="900" placeholder="actual"><input id="pn2" type="number" inputmode="decimal" step="0.1" min="70" max="105" placeholder="actual">
+  <h2>Power assurance check — RFM Fig 4-1</h2>
+  <p class="hint" style="margin-top:0">Test engine at FLY (N<sub>P</sub> 100%), other engine IDLE, bleed air heater / ECU OFF on the test engine. Ground or hover, do not exceed 66.2% Q, 825 °C MGT or 102.0% N<sub>G</sub>. Stabilize 1 minute. Pressure altitude and OAT come from Conditions.</p>
+  <div class="pacgrid">
+    <div class="paceng"><div class="rlab" style="color:#14883e">ENGINE 1</div><div class="grid3">
+      <label class="f">Torque (%)<input id="pq1" type="number" inputmode="decimal" step="0.1" min="40" max="75" value="60"></label>
+      <label class="f">MGT (°C)<input id="pm1" type="number" inputmode="decimal" min="300" max="900" value="750"></label>
+      <label class="f">NG (%)<input id="pn1" type="number" inputmode="decimal" step="0.1" min="70" max="105" value="97.5"></label></div></div>
+    <div class="paceng"><div class="rlab" style="color:#0a6ad1">ENGINE 2</div><div class="grid3">
+      <label class="f">Torque (%)<input id="pq2" type="number" inputmode="decimal" step="0.1" min="40" max="75" value="60"></label>
+      <label class="f">MGT (°C)<input id="pm2" type="number" inputmode="decimal" min="300" max="900" value="750"></label>
+      <label class="f">NG (%)<input id="pn2" type="number" inputmode="decimal" step="0.1" min="70" max="105" value="97.5"></label></div></div>
   </div>
-  <div id="pwrRes"></div>
+  <div class="pacgrid" id="pwrRes"></div>
   <div class="msgs" id="pwrMsgs"></div>
-  <div id="pwrCharts" style="display:grid;gap:12px;max-width:760px"></div>
-  <p class="legend">Test engine at FLY, other engine IDLE or OFF, N<sub>P</sub> 100%, bleed-air heater and generator OFF on the test engine. Stabilize 1 minute; do not exceed 825 °C MGT, 102.0% N<sub>G</sub> or 66.2% torque. Chart lines digitized from the scanned FM figure (≈ ±2 °C / ±0.2% reading accuracy) — the DU3 automated check remains the primary method.</p>
+  <div id="pwrCharts" style="display:grid;gap:12px"></div>
+  <p class="hint">Green: engine 1 · Blue: engine 2. Chart lines digitized from the scanned FM figure (about ±2 °C / ±0.2% reading accuracy) — the DU3 automated check remains the primary method.</p>
   <h2 style="margin-top:22px">Density altitude — BHT-412-FM-5 Fig 4-2</h2>
   <div class="cfgrow"><label class="f">Calibrated airspeed (KCAS)<input id="kcas" type="number" inputmode="decimal" min="0" max="200" value="100"></label></div>
   <div class="res" id="daRes" style="margin-top:12px"></div>
@@ -465,7 +475,7 @@ function calc(){
   $('watRes').innerHTML=wh; $('wrapW').innerHTML=wc;
   $('watMsgs').innerHTML='<div class="msg">Allowable weights from the WAT chart may exceed hover capability — check the hover ceiling.</div>';
   try{ calcROC({pa,oat,gw,heat,acOn}); }catch(e){ $('rocRes').innerHTML='<div class="msg">ROC error: '+e.message+'</div>'; console.error(e); }
-  try{ calcLimits({pa,oat}); calcHV(); }catch(e){ $('limTiles').innerHTML='<div class="msg">Limitations error: '+e.message+'</div>'; console.error(e); }
+  try{ calcLimits({pa,oat}); }catch(e){ $('limTiles').innerHTML='<div class="msg">Limitations error: '+e.message+'</div>'; console.error(e); }
   try{ calcPWR({pa,oat,da}); }catch(e){ $('pwrRes').innerHTML='<div class="msg">Power check error: '+e.message+'</div>'; console.error(e); }
   try{ calcStay({elev,alt,oat,gw}); }catch(e){ $('stayBody').innerHTML='<div class="msg">Stay-up error: '+e.message+'</div>'; console.error(e); }
   try{ calcPC2({pa,oat,gw,da,hw}); }catch(e){ $('pc2Cards').innerHTML='<div class="msg">PC2 error: '+e.message+'</div>'; console.error(e); }

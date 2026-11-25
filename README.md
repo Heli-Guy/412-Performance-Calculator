@@ -6,7 +6,13 @@ Web-based performance calculator for the CCG Bell 412EPI fleet, built from the C
 
 Open `index.html` in a browser (or via GitHub Pages). Single self-contained file, works offline.
 
-## Current version: v0.09
+## Current version: v0.10
+
+### v0.10
+- Limitations: H-V diagram removed.
+- CAT-A Helipad: profile selector on its own row, profile inputs on the next row (no clipped text); Performance Class 2 cards moved up under the CAT-A cards, PC2 charts at the bottom.
+- Charts no longer stretch to the height of their neighbour (no blank chart panels).
+- Power Check in the 429 layout: Engine 1 / Engine 2 input boxes, PASS / BELOW MIN SPEC boxes with MGT and NG margin cards, check-limit messages.
 
 ### v0.09
 - Limitations: WAT cards moved up under the limitation tiles; fuel and H-V status below; reference charts (WAT, H-V diagram) at the bottom.
