@@ -70,7 +70,7 @@
   <div class="sp-t">B412 <span>Performance</span></div>
   <div class="sp-s">Loading charts…</div>
 </div>
-<header><h1>B412 <span>Performance</span></h1><div class="ver">v0.10 · test build</div></header>
+<header><h1>B412 <span>Performance</span></h1><div class="ver">v0.11 · test build</div></header>
 <main>
 
 <div id="stick">
@@ -147,13 +147,13 @@
 <section class="card" id="t-helipad" style="display:none">
   <h2>CAT-A Helipad — BHT-412-FMS-62.5</h2>
   <div class="grid6" style="grid-template-columns:minmax(0,1fr)"><label class="f" style="max-width:560px">Profile<select id="caProf"><option value="A">Part A — Side step (elevated heliport)</option><option value="B">Part B — Backup (surface / elevated heliport)</option><option value="D">Part D — Offset backup (surface / elevated heliport)</option></select></label></div>
-  <div class="grid6" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px">
+  <div class="grid6" style="margin-top:8px;margin-bottom:10px">
     <label class="f caA">Takeoff surface height (ft)<input id="caSurf" type="number" inputmode="decimal" min="0" max="2000" value="105"></label>
     <label class="f caA">Allowable drop down (ft)<input id="caDrop" type="number" inputmode="decimal" min="0" max="200" placeholder="90 or more"></label>
-    <label class="f caA">Pad side at TDP/LDP<select id="caSide"><option value="R">Pad on right</option><option value="L">Pad on left (2 pilots)</option></select></label>
+    <label class="f caA" style="grid-column:span 2">Pad side at TDP/LDP<select id="caSide"><option value="R">Pad on right</option><option value="L">Pad on left (2 pilots)</option></select></label>
     <label class="f caB">Backup obstacle height (ft)<input id="caBkh" type="number" inputmode="decimal" min="0" max="300" placeholder="none"></label>
-    <label class="f caB">Backup obstacle distance (ft)<input id="caBkd" type="number" inputmode="decimal" min="0" max="1000" placeholder="from takeoff point"></label>
-    <label class="f caB">Flyaway obstacle height (ft)<input id="caFly" type="number" inputmode="decimal" min="0" max="500" value="0"></label>
+    <label class="f caB">Backup obstacle distance (ft)<input id="caBkd" type="number" inputmode="decimal" min="0" max="1000" placeholder="from takeoff pt"></label>
+    <label class="f caB flyaway">Flyaway obstacle height (ft)<input id="caFly" type="number" inputmode="decimal" min="0" max="500" value="0"></label>
   </div>
   <div class="res" id="heli" style="margin-top:12px"></div>
   <div class="msgs" id="heliMsgs"></div>
@@ -491,7 +491,7 @@ function calc(){
 /*OEIUI*/
 /*PC2UI*/
 $('hovT').addEventListener('pointerdown',e=>{const td=e.target.closest('td.c');if(td){SEL=td.dataset.id;calc.jump=SEL;setTimeout(calc,0);}});
-function bindZoom(){document.querySelectorAll('.chart').forEach(c=>c.onclick=()=>{const sv=c.querySelector('svg');if(!sv)return;$('zc').innerHTML=sv.outerHTML.replace(/ah(\d+)/g,'zah$1');$('zoom').classList.add('on');});}
+function bindZoom(){document.querySelectorAll('.chart').forEach(c=>c.onclick=()=>{const sv=c.querySelector('svg');if(!sv)return;$('zc').innerHTML=sv.outerHTML.replace(/(id="|url\(#)ah(\d+)/g,'$1zah$2');$('zoom').classList.add('on');});}
 function zClose(){$('zoom').classList.remove('on');}
 $('zoom').addEventListener('click',zClose);$('zx').addEventListener('click',zClose);document.addEventListener('keydown',e=>{if(e.key==='Escape')zClose()});
 

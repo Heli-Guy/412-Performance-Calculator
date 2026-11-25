@@ -6,7 +6,11 @@ Web-based performance calculator for the CCG Bell 412EPI fleet, built from the C
 
 Open `index.html` in a browser (or via GitHub Pages). Single self-contained file, works offline.
 
-## Current version: v0.10
+## Current version: v0.11
+
+### v0.11
+- Fix: tapping a chart to enlarge it showed only the calculation lines — the chart image was being corrupted when the arrow markers were renamed for the zoom view.
+- CAT-A Helipad Part B / D inputs laid out like the 429 (backup obstacle height and distance, flyaway obstacle height above the TDP card).
 
 ### v0.10
 - Limitations: H-V diagram removed.
