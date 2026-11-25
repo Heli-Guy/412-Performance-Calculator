@@ -6,7 +6,10 @@ Web-based performance calculator for the CCG Bell 412EPI fleet, built from the C
 
 Open `index.html` in a browser (or via GitHub Pages). Single self-contained file, works offline.
 
-## Current version: v0.08
+## Current version: v0.09
+
+### v0.09
+- Limitations: WAT cards moved up under the limitation tiles; fuel and H-V status below; reference charts (WAT, H-V diagram) at the bottom.
 
 ### v0.08 — brought in line with the 429 app (v0.86), plus 412-only additions
 - 429 layout: Chrome-style tabs (Limitations, CAT-A Helipad, CAT-A Runway, Stay Up Weight, Hover, ROC, Power Check), dark mode, sticky Conditions / Aircraft configuration frames, **Current METAR** button, relative-wind pictogram with the FM-5 Fig 4-3 OGE critical azimuths, ON/OFF switches (heater FMS-1.5, air conditioner, ≤ 9 pax FMS-35.5, hook load FMS-9.5), input limits with notes, weights in Lbs, settings and tab remembered.
