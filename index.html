@@ -292,6 +292,8 @@
 <section class="card" id="t-limits">
   <h2>Limitations — BHT-412-FM-5 Section 1</h2>
   <div class="res" id="limTiles"></div>
+  <div class="rlab" style="margin-top:12px">WEIGHT-ALTITUDE-TEMPERATURE — TAKEOFF, LANDING &amp; IGE MANOEUVRES (FIG 1-2)</div>
+  <div class="res" id="watRes"></div>
   <div class="fuelbox" id="limFuels"></div>
   <div class="fuelbox" id="limHV"></div>
 </section>
@@ -310,10 +312,10 @@
 </section>
 
 <section class="card" id="t-wat">
-  <h2>Weight-Altitude-Temperature — takeoff, landing &amp; IGE manoeuvres (Fig 1-2)</h2>
-  <div class="res" id="watRes"></div>
+  <h2>Reference charts</h2>
   <div class="msgs" id="watMsgs"></div>
   <div class="pair" id="wrapW"></div>
+  <div id="limHVchart"></div>
 </section>
 
 <section class="card" id="t-helipad" style="display:none">
@@ -1088,8 +1090,8 @@ function calcHV(){
   const row=(st,name,why)=>`<div class="fuelrow ${st}"><span class="ic">${st==='ok'?'✓':'!'}</span><b>${name}</b><span class="why">${why}</span></div>`;
   $('limHV').innerHTML=`<div class="k">Height-velocity diagram (OEI) — FM-5 Fig 1-4</div>`+
     (p9?row('ok','Not a limitation','configured with 9 or fewer passenger seats — FMS-35.5 removes the H-V diagram as a limitation (still performance information, FMS-35.5 Fig 4-2A)')
-       :row('warn','Limitation unless flown CAT-A','more than 9 passenger seats: the H-V diagram is a limitation unless the takeoff / landing is flown to the FMS-62.5 CAT-A profile (check the CAT-A tabs)'))+
-    `<div class="chart" style="max-width:420px;margin-top:8px"><svg viewBox="${PF.hv14.join(' ')}" xmlns="http://www.w3.org/2000/svg"><image href="${IMG.hv14}" x="${PF.hv14[0]}" y="${PF.hv14[1]}" width="${PF.hv14[2]}" height="${PF.hv14[3]}" preserveAspectRatio="none"/></svg><div class="cap"><span>BHT-412-FM-5 Fig 1-4 · Height-Velocity Diagram (OEI)</span><span>p.1-21</span></div></div>`;
+       :row('warn','Limitation unless flown CAT-A','more than 9 passenger seats: the H-V diagram is a limitation unless the takeoff / landing is flown to the FMS-62.5 CAT-A profile (check the CAT-A tabs)'));
+  $('limHVchart').innerHTML=`<div class="chart" style="max-width:420px;margin-top:8px"><svg viewBox="${PF.hv14.join(' ')}" xmlns="http://www.w3.org/2000/svg"><image href="${IMG.hv14}" x="${PF.hv14[0]}" y="${PF.hv14[1]}" width="${PF.hv14[2]}" height="${PF.hv14[3]}" preserveAspectRatio="none"/></svg><div class="cap"><span>BHT-412-FM-5 Fig 1-4 · Height-Velocity Diagram (OEI)</span><span>p.1-21</span></div></div>`;
 }
 
 // ================= STAY UP WEIGHT (OEI at cruise) =================

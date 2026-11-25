@@ -20,6 +20,6 @@ function calcHV(){
   const row=(st,name,why)=>`<div class="fuelrow ${st}"><span class="ic">${st==='ok'?'✓':'!'}</span><b>${name}</b><span class="why">${why}</span></div>`;
   $('limHV').innerHTML=`<div class="k">Height-velocity diagram (OEI) — FM-5 Fig 1-4</div>`+
     (p9?row('ok','Not a limitation','configured with 9 or fewer passenger seats — FMS-35.5 removes the H-V diagram as a limitation (still performance information, FMS-35.5 Fig 4-2A)')
-       :row('warn','Limitation unless flown CAT-A','more than 9 passenger seats: the H-V diagram is a limitation unless the takeoff / landing is flown to the FMS-62.5 CAT-A profile (check the CAT-A tabs)'))+
-    `<div class="chart" style="max-width:420px;margin-top:8px"><svg viewBox="${PF.hv14.join(' ')}" xmlns="http://www.w3.org/2000/svg"><image href="${IMG.hv14}" x="${PF.hv14[0]}" y="${PF.hv14[1]}" width="${PF.hv14[2]}" height="${PF.hv14[3]}" preserveAspectRatio="none"/></svg><div class="cap"><span>BHT-412-FM-5 Fig 1-4 · Height-Velocity Diagram (OEI)</span><span>p.1-21</span></div></div>`;
+       :row('warn','Limitation unless flown CAT-A','more than 9 passenger seats: the H-V diagram is a limitation unless the takeoff / landing is flown to the FMS-62.5 CAT-A profile (check the CAT-A tabs)'));
+  $('limHVchart').innerHTML=`<div class="chart" style="max-width:420px;margin-top:8px"><svg viewBox="${PF.hv14.join(' ')}" xmlns="http://www.w3.org/2000/svg"><image href="${IMG.hv14}" x="${PF.hv14[0]}" y="${PF.hv14[1]}" width="${PF.hv14[2]}" height="${PF.hv14[3]}" preserveAspectRatio="none"/></svg><div class="cap"><span>BHT-412-FM-5 Fig 1-4 · Height-Velocity Diagram (OEI)</span><span>p.1-21</span></div></div>`;
 }
